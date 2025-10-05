@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Captura de Dados</title>
+</head>
+<body>
+  <h2>Envie seus dados</h2>
+
+  <form action="/dados" method="post">
+    <input type="text" name="nome" placeholder="Seu nome">
+    <input type="number" name="idade" placeholder="Idade">
+    <button type="submit">Enviar</button>
+  </form>
+
+  {% if recebido %}
+    <h3>Dados recebidos:</h3>
+    <pre>{{ recebido }}</pre>
+  {% endif %}
+</body>
+</html>
