@@ -1,8 +1,198 @@
+/* === BASE === */
 body {
-  background: linear-gradient(135deg, #cfd9df, #e2ebf0);
+  background: linear-gradient(135deg, #e9eef3, #f7f9fb);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  color: #222;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.card {
+/* === CABEÇALHO === */
+header {
+  background: #007BFF;
+  color: #fff;
+  text-align: center;
+  padding: 10px 0;
+  font-size: 18px;
+  font-weight: 500;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+/* === CONTEÚDO PRINCIPAL === */
+main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  padding: 8px;
+}
+
+/* === ÁREA CENTRAL === */
+.content {
+  width: 90%;
+  max-width: 1100px;
+  height: 88vh;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 12px;
+  padding: 20px 25px;
+  overflow-y: auto;
+}
+
+.content::-webkit-scrollbar {
+  width: 6px;
+}
+.content::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+
+/* === BLOCOS DE PERGUNTAS === */
+.question-block {
+  background: #f9f9f9;
+  border-left: 3px solid #007BFF;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 4px 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.question-block p {
+  margin: 4px 0;
+  font-size: 13px;
+}
+
+.resposta {
+  font-weight: 600;
+  margin-top: 4px;
+  color: #007BFF;
+}
+
+/* === CAMPOS === */
+select, input, button {
+  font-size: 13px;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-top: 6px;
+}
+
+input.currency {
+  width: 100px;
+  text-align: right;
+}
+
+button {
+  background-color: #007BFF;
+  color: white;
+  cursor: pointer;
   border: none;
+  transition: background-color 0.2s ease-in-out;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* === RODAPÉ DE ESPAÇOS (ANÚNCIOS) === */
+.side {
+  display: none; /* removemos barras laterais pra mais espaço central */
+}
+
+/* === RESPONSIVIDADE === */
+@media (max-width: 900px) {
+  .content {
+    grid-template-columns: 1fr;
+    height: auto;
+    padding: 15px;
+  }
+}
+
+/* === CAMPOS DINÂMICOS DE MESES (RBT) === */
+.months-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+@media (max-width: 600px) {
+  .months-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.month-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.month-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.month-wrapper input {
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: 75px; /* espaço p/ nome do mês */
+  text-align: right;
+  font-size: 13px;
+}
+
+.month-tag {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: #444;
+  background: #fff;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* === ÁREA DE CÁLCULO (DIREITA) === */
+.content-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  padding-left: 20px;
+  border-left: 1px solid #e6e6e6;
+}
+
+@media (max-width: 900px) {
+  .content-right {
+    border-left: none;
+    padding-left: 0;
+  }
+}
+
+/* === MENSAGEM DE ERRO (data futura) === */
+.error-msg {
+  color: #c0392b;
+  font-size: 12px;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* === AJUSTE VISUAL DE CAMPOS === */
+.dynamic-block {
+  margin-top: 8px;
+  padding: 8px;
+  background: #fff;
+  border: 1px dashed #d3d8df;
+  border-radius: 6px;
 }
