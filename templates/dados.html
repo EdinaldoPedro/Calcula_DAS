@@ -4,13 +4,9 @@
   <meta charset="utf-8" />
   <title>Painel - Simples Nacional (JSON compatível)</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <!-- seu style.css externo (mantém layout principal) -->
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- fallback CSS mínimo para garantir que não quebre -->
   <style>
-    /* Fallback mínimos — serão sobrescritos pelo style.css se ele existir */
     :root { --accent: #007BFF; }
     body { font-family: "Segoe UI", Arial, sans-serif; margin:0; background:#f7f9fb; color:#222; }
     header { background:var(--accent); color:#fff; padding:12px 0; text-align:center; position:fixed; left:0; right:0; top:0; z-index:10; }
@@ -24,10 +20,8 @@
     input.currency { text-align:right; }
     .hint { font-size:12px; color:#555; margin-top:4px; }
     .action { display:flex; justify-content:center; margin-top:12px; }
-    .json-preview { margin-top:10px; background:#0f1720; color:#e6f0ff; padding:10px; border-radius:6px; font-family:monospace; font-size:13px; overflow:auto; max-height:180px; }
+    .json-preview { margin-top:10px; background:#0f1720; color:#e6f0ff; padding:10px; border-radius:6px; font-family:monospace; font-size:13px; overflow:auto; max-height:280px; }
     .dynamic-block { margin-top:8px; padding:8px; background:#fff; border:1px dashed #e0e7f1; border-radius:6px; }
-
-    /* meses: duas colunas, tag à esquerda dentro do campo */
     .months-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
     @media(max-width:600px) { .months-grid { grid-template-columns:1fr; } }
     .month-cell { display:flex; flex-direction:column; gap:4px; }
@@ -35,11 +29,11 @@
     .month-wrapper input { width:100%; box-sizing:border-box; padding-left:74px; text-align:right; }
     .month-tag { position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:12px; color:#444; background:#fff; padding:4px 6px; border-radius:6px; border:1px solid rgba(0,0,0,0.04); pointer-events:none; white-space:nowrap; }
     .error-msg { color:#c0392b; font-size:12px; margin-top:4px; font-style:italic; }
+    .result-wrapper { margin-top:12px; }
   </style>
 </head>
 <body>
   <header><h1><i data-lucide="calculator"></i> Painel de Cálculo — JSON compatível</h1></header>
-
   <main>
     <div class="wrap">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
@@ -48,7 +42,6 @@
       </div>
 
       <div class="grid">
-        <!-- esquerda -->
         <div class="card" id="left-card">
           <div class="label"><i data-lucide="layers"></i> Qual anexo?</div>
           <select id="anexo">
@@ -70,11 +63,9 @@
           <div id="rbt-dynamic-area"></div>
         </div>
 
-        <!-- direita -->
         <div class="card content-right">
           <div class="label"><i data-lucide="file-text"></i> Faturamento para cálculo</div>
           <input id="faturamento" class="currency" placeholder="R$ —" />
-
           <div class="label" style="margin-top:8px"><i data-lucide="globe"></i> É exportação de serviços?</div>
           <select id="exportacao">
             <option value="">-- selecione --</option>
@@ -94,6 +85,8 @@
         <div style="margin-top:10px;font-size:13px;color:#333"><strong>JSON a ser enviado:</strong></div>
         <pre id="jsonPreview" class="json-preview"></pre>
       </div>
+
+      <div id="resultArea" class="result-wrapper"></div>
     </div>
   </main>
 
@@ -102,10 +95,7 @@
   </footer>
 
   <script>
-    // inicializa icons
     lucide.createIcons();
-
-    // mapeamento
     const anexoMap = {
       "Anexo I - Comércio": 1,
       "Anexo II - Indústria": 2,
@@ -114,7 +104,6 @@
       "Anexo V - Serviço": 5
     };
 
-    // elementos DOM
     const rbtConheceSelect = document.getElementById('rbt-conhece');
     const rbtDynamicArea = document.getElementById('rbt-dynamic-area');
     const faturamentoInput = document.getElementById('faturamento');
@@ -124,176 +113,83 @@
     const errorsDiv = document.getElementById('errors');
     const previewWrapper = document.getElementById('previewWrapper');
     const jsonPreview = document.getElementById('jsonPreview');
+    const resultArea = document.getElementById('resultArea');
 
-    // campo RBT (reutilizável, sempre criado mas inserido no DOM apenas quando necessário)
     const rbtInput = document.createElement('input');
     rbtInput.className = 'currency';
     rbtInput.placeholder = 'R$ —';
     attachCurrencyBehaviorMinimal(rbtInput);
 
-    // evento Sim/Não para RBT conhecido
     rbtConheceSelect.addEventListener('change', () => {
       rbtDynamicArea.innerHTML = '';
       errorsDiv.textContent = '';
-
       if (rbtConheceSelect.value === 'Sim') {
-        // mostra campo RBT manual
-        const label = document.createElement('div');
-        label.className = 'label';
+        const label = document.createElement('div'); label.className='label';
         label.innerHTML = '<i data-lucide="coins"></i> Informe o RBT';
-        rbtDynamicArea.appendChild(label);
-        rbtDynamicArea.appendChild(rbtInput);
-        lucide.createIcons();
+        rbtDynamicArea.appendChild(label); rbtDynamicArea.appendChild(rbtInput); lucide.createIcons();
       } else if (rbtConheceSelect.value === 'Não') {
-        // mostra bloco de data -> confirma -> gera meses automaticamente
-        const block = document.createElement('div');
-        block.className = 'dynamic-block';
-
-        const label = document.createElement('div');
-        label.className = 'label';
-        label.innerHTML = '<i data-lucide="calendar"></i> Data de abertura da PJ';
-
-        const inputDate = document.createElement('input');
-        inputDate.type = 'date';
-
-        // limitar visualmente a seleção (sempre validar ao confirmar)
-        const hoje = new Date();
-        const hojeStr = hoje.toISOString().split('T')[0];
-        inputDate.max = hojeStr;
-
-        const hint = document.createElement('div');
-        hint.className = 'hint';
-        hint.textContent = 'Se ainda não tem PJ aberta, coloque a data de hoje.';
-
-        const btn = document.createElement('button');
-        btn.textContent = 'Confirmar data';
-
-        const monthsArea = document.createElement('div');
-        monthsArea.style.marginTop = '10px';
-
-        block.append(label, inputDate, btn, hint, monthsArea);
-        rbtDynamicArea.appendChild(block);
-        lucide.createIcons();
+        const block = document.createElement('div'); block.className='dynamic-block';
+        const label = document.createElement('div'); label.className='label'; label.innerHTML = '<i data-lucide="calendar"></i> Data de abertura da PJ';
+        const inputDate = document.createElement('input'); inputDate.type='date';
+        const hoje = new Date(); inputDate.max = hoje.toISOString().split('T')[0];
+        const hint = document.createElement('div'); hint.className='hint'; hint.textContent = 'Se ainda não tem PJ aberta, coloque a data de hoje.';
+        const btn = document.createElement('button'); btn.textContent='Confirmar data';
+        const monthsArea = document.createElement('div'); monthsArea.style.marginTop='10px';
+        block.append(label, inputDate, btn, hint, monthsArea); rbtDynamicArea.appendChild(block); lucide.createIcons();
 
         btn.addEventListener('click', () => {
-          monthsArea.innerHTML = '';
-          errorsDiv.textContent = '';
+          monthsArea.innerHTML = ''; errorsDiv.textContent = '';
+          if (!inputDate.value) { alert('Informe a data de abertura.'); return; }
+          if (inputDate.value > inputDate.max) { hint.textContent = 'Datas futuras não são permitidas.'; hint.classList.add('error-msg'); return; }
+          hint.style.display='none';
+          const [ano, mes, dia] = inputDate.value.split('-').map(Number);
+          const abertura = new Date(ano, mes - 1, dia);
 
-          if (!inputDate.value) {
-            alert('Informe a data de abertura.');
-            return;
-          }
-
-          // validação contra datas futuras (confirmação)
-          if (inputDate.value > hojeStr) {
-            hint.textContent = 'Datas futuras não são permitidas. Corrija a data.';
-            hint.classList.add('error-msg');
-            inputDate.disabled = false;
-            btn.disabled = false;
-            return;
-          }
-
-          // ok - ocultar hint
-          hint.style.display = 'none';
-
-          // calcula quantos meses e startDate
-          const abertura = new Date(inputDate.value);
-          const info = computeMonthsAndStart(abertura);
-          const meses = info.months;
-          const startDate = info.startDate;
-          const hojeDate = new Date();
-
-          // grid de meses (duas colunas)
-          const grid = document.createElement('div');
-          grid.className = 'months-grid';
-          const inputs = [];
-
-          for (let i = 0; i < meses; i++) {
-            const d = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
-            // ultimo mes completo (mês anterior ao atual)
-            const lastCompleted = new Date(hojeDate.getFullYear(), hojeDate.getMonth() - 1, 1);
-            if (d > lastCompleted) break;
-
-            const cell = document.createElement('div');
-            cell.className = 'month-cell';
-
-            const wrapper = document.createElement('div');
-            wrapper.className = 'month-wrapper';
-
-            const inp = document.createElement('input');
-            inp.type = 'text';
-            inp.className = 'currency month-input';
-            inp.placeholder = 'R$ —';
+          const info = computeMonthsAndStart(abertura); const meses = info.months; const startDate = info.startDate;
+          const hojeDate = new Date(); const grid = document.createElement('div'); grid.className='months-grid'; const inputs = [];
+          for (let i=0;i<meses;i++){
+            const d = new Date(startDate.getFullYear(), startDate.getMonth()+i, 1);
+            // <-- MUDANÇA 1: A condição de parada foi alterada para permitir a exibição do mês atual.
+            if (d > hojeDate) break;
+            const cell = document.createElement('div'); cell.className='month-cell';
+            const wrapper = document.createElement('div'); wrapper.className='month-wrapper';
+            const inp = document.createElement('input'); inp.type='text'; inp.className='currency month-input'; inp.placeholder='R$ —';
             attachCurrencyBehaviorMinimal(inp);
-
-            const tag = document.createElement('div');
-            tag.className = 'month-tag';
-            tag.textContent = abreviarMes(d);
-
-            wrapper.appendChild(tag);
-            wrapper.appendChild(inp);
-            cell.appendChild(wrapper);
-            grid.appendChild(cell);
-            inputs.push(inp);
+            const tag = document.createElement('div'); tag.className='month-tag'; tag.textContent=abreviarMes(d);
+            wrapper.append(tag, inp); cell.appendChild(wrapper); grid.appendChild(cell); inputs.push(inp);
           }
+          monthsArea.appendChild(grid); lucide.createIcons();
 
-          monthsArea.appendChild(grid);
-          lucide.createIcons();
-
-          // cálculo automático: quando todos os inputs tiverem valor (0 é válido)
           function tryAutoCalculate() {
-            if (inputs.length === 0) return;
+            if (inputs.length===0) {
+              rbtInput.setNumericValue(0);
+              return;
+            }
             const allFilled = inputs.every(i => i.getNumericValue() !== null);
             if (!allFilled) return;
-            const total = inputs.reduce((s, i) => s + i.getNumericValue(), 0);
-            const media = total / inputs.length;
-            const rbtCalc = media * 12;
-            rbtInput.setNumericValue(rbtCalc);
+            const total = inputs.reduce((s,i)=>s+i.getNumericValue(),0);
+            const media = total / inputs.length; const rbtCalc = media * 12; rbtInput.setNumericValue(rbtCalc);
           }
-
-          // escuta eventos nos inputs: blur, input, paste
-          inputs.forEach(i => {
-            i.addEventListener('blur', tryAutoCalculate);
-            i.addEventListener('input', tryAutoCalculate);
-            i.addEventListener('paste', () => setTimeout(tryAutoCalculate, 50));
-          });
-
-          // tentativa imediata (caso já tenham valor)
+          inputs.forEach(i=>{ i.addEventListener('blur', tryAutoCalculate); i.addEventListener('input', tryAutoCalculate); i.addEventListener('paste', ()=>setTimeout(tryAutoCalculate,50)); });
           tryAutoCalculate();
-
-          // travar data (confirmada)
-          btn.disabled = true;
-          inputDate.disabled = true;
         });
-      } else {
-        // vazio — limpa área dinâmica
-        rbtDynamicArea.innerHTML = '';
-      }
+      } else { rbtDynamicArea.innerHTML = ''; }
     });
 
-    // inicializar outros campos
     attachCurrencyBehaviorMinimal(faturamentoInput);
 
-    // botão verificar e montar JSON final
-    btnEnviar.addEventListener('click', () => {
-      errorsDiv.textContent = '';
-      previewWrapper.style.display = 'none';
-
+    btnEnviar.addEventListener('click', async () => {
+      errorsDiv.textContent = ''; resultArea.innerHTML = '';
       const anexo = anexoMap[anexoSelect.value];
       const rbtVal = rbtInput.getNumericValue();
       const faturVal = faturamentoInput.getNumericValue();
       const exportVal = exportacaoSelect.value;
-
       const faltam = [];
       if (!anexo) faltam.push('anexo');
       if (rbtVal === null) faltam.push('RBT');
       if (faturVal === null) faltam.push('faturamento');
       if (!exportVal) faltam.push('exportação');
-
-      if (faltam.length) {
-        errorsDiv.textContent = 'Preencha: ' + faltam.join(', ');
-        return;
-      }
+      if (faltam.length) { errorsDiv.textContent = 'Preencha: ' + faltam.join(', '); return; }
 
       const finalObj = {
         anexo,
@@ -304,16 +200,25 @@
 
       jsonPreview.textContent = JSON.stringify(finalObj, null, 2);
       previewWrapper.style.display = 'block';
-    });
 
-    /* ---------------- Helpers ---------------- */
+      try {
+        const resp = await fetch('/calcular_das', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(finalObj)
+        });
+        const data = await resp.json();
+        const out = document.createElement('div');
+        out.innerHTML = `<div style="margin-top:8px"><strong>JSON de retorno:</strong></div><pre class="json-preview">${JSON.stringify(data,null,2)}</pre>`;
+        resultArea.appendChild(out);
+      } catch (err) {
+        errorsDiv.textContent = 'Erro ao enviar/receber do servidor: ' + err;
+      }
+    });
 
     function attachCurrencyBehaviorMinimal(inp) {
       let cents = 0, touched = false;
-      function render() {
-        if (!touched && cents === 0) { inp.value = ''; return; }
-        inp.value = new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(cents/100);
-      }
+      function render() { if (!touched && cents === 0) { inp.value = ''; return; } inp.value = new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(cents/100); }
       inp.addEventListener('keydown', e => {
         if (/\d/.test(e.key)) { e.preventDefault(); touched = true; cents = cents * 10 + +e.key; render(); }
         else if (e.key === 'Backspace') { e.preventDefault(); touched = true; cents = Math.floor(cents / 10); render(); }
@@ -321,52 +226,35 @@
         else if (!['Tab','ArrowLeft','ArrowRight','Enter'].includes(e.key)) e.preventDefault();
       });
       inp.addEventListener('blur', render);
-      inp.addEventListener('paste', (ev) => {
-        ev.preventDefault();
-        const txt = (ev.clipboardData || window.clipboardData).getData('text') || '';
-        const n = parseToNumber(txt);
-        if (n !== null) { cents = Math.round(n * 100); touched = true; render(); }
-      });
+      inp.addEventListener('paste', (ev) => { ev.preventDefault(); const txt = (ev.clipboardData || window.clipboardData).getData('text') || ''; const n = parseToNumber(txt); if (n !== null) { cents = Math.round(n * 100); touched = true; render(); }});
       inp.getNumericValue = () => touched ? cents / 100 : null;
       inp.setNumericValue = num => { cents = Math.round(num * 100); touched = true; render(); };
       render();
     }
+    function parseToNumber(s) { if (s===null||s===undefined) return null; let t = String(s).trim(); if (!t) return null; t = t.replace(/\s/g,'').replace(/R\$/gi,''); const comma = t.indexOf(','); const dot = t.indexOf('.'); if (dot!==-1 && comma!==-1) t = t.replace(/\./g,'').replace(',','.'); else if (comma!==-1 && dot===-1) t = t.replace(',','.'); t = t.replace(/[^0-9\.\-]/g,''); const n = Number(t); return isNaN(n)?null:n; }
+    function abreviarMes(dateObj) { const meses = ["Jan.","Fev.","Mar.","Abr.","Mai.","Jun.","Jul.","Ago.","Set.","Out.","Nov.","Dez."]; return `${meses[dateObj.getMonth()]} ${dateObj.getFullYear()}`; }
+    
+    // <-- MUDANÇA 2: A função inteira foi ajustada para lidar com a nova lógica.
+    function computeMonthsAndStart(abertura){
+        const hoje = new Date();
+        const isSameMonthAndYear = abertura.getFullYear() === hoje.getFullYear() && abertura.getMonth() === hoje.getMonth();
 
-    function parseToNumber(s) {
-      if (s === null || s === undefined) return null;
-      let t = String(s).trim();
-      if (!t) return null;
-      t = t.replace(/\s/g,'').replace(/R\$/gi,'');
-      const comma = t.indexOf(',');
-      const dot = t.indexOf('.');
-      if (dot !== -1 && comma !== -1) t = t.replace(/\./g,'').replace(',','.');
-      else if (comma !== -1 && dot === -1) t = t.replace(',','.');
-      t = t.replace(/[^0-9\.\-]/g,'');
-      const n = Number(t);
-      return isNaN(n) ? null : n;
-    }
+        // Caso especial: a empresa abriu no mês atual.
+        if (isSameMonthAndYear) {
+            return { months: 1, startDate: new Date(hoje.getFullYear(), hoje.getMonth(), 1) };
+        }
 
-    function abreviarMes(dateObj) {
-      const meses = ["Jan.", "Fev.", "Mar.", "Abr.", "Mai.", "Jun.", "Jul.", "Ago.", "Set.", "Out.", "Nov.", "Dez."];
-      const nome = meses[dateObj.getMonth()];
-      return `${nome} ${dateObj.getFullYear()}`;
-    }
+        // Lógica anterior para empresas com meses anteriores completos.
+        let orig = (hoje.getFullYear() - abertura.getFullYear()) * 12 + (hoje.getMonth() - abertura.getMonth());
+        if (hoje.getDate() < abertura.getDate()) orig--;
+        if (orig < 1) orig = 0;
 
-    function computeMonthsAndStart(abertura) {
-      const hoje = new Date();
-      let orig = (hoje.getFullYear() - abertura.getFullYear()) * 12 + (hoje.getMonth() - abertura.getMonth());
-      if (hoje.getDate() < abertura.getDate()) orig--;
-      if (orig < 1) orig = 1;
-      const months = Math.min(orig, 12);
-      const rawDiff = (hoje.getFullYear() - abertura.getFullYear()) * 12 + (hoje.getMonth() - abertura.getMonth());
-      let startDate;
-      if (rawDiff > 12) {
+        const months = Math.min(orig, 12);
+        const rawDiff = (hoje.getFullYear() - abertura.getFullYear()) * 12 + (hoje.getMonth() - abertura.getMonth());
         const lastCompleted = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
-        startDate = new Date(lastCompleted.getFullYear(), lastCompleted.getMonth() - (months - 1), 1);
-      } else {
-        startDate = new Date(abertura.getFullYear(), abertura.getMonth(), 1);
-      }
-      return { months, startDate };
+        const startDate = rawDiff > 12 ? new Date(lastCompleted.getFullYear(), lastCompleted.getMonth() - (months - 1), 1) : new Date(abertura.getFullYear(), abertura.getMonth(), 1);
+        
+        return { months, startDate };
     }
   </script>
 </body>
