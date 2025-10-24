@@ -122,12 +122,24 @@
       lucide.createIcons();
 
       btn.addEventListener('click', () => {
-        monthsArea.innerHTML = ''; errorsDiv.textContent = '';
-        if (!inputDate.value) { alert('Informe a data de abertura.'); return; }
+        monthsArea.innerHTML = '';
+        errorsDiv.textContent = '';
+
+        // reseta borda
+        inputDate.classList.remove('campo-erro');
+
+        if (!inputDate.value) {
+          hint.textContent = 'Informe a data de abertura.';
+          hint.classList.add('error-msg');
+          inputDate.classList.add('campo-erro'); // 🔴 borda vermelha
+          return;
+        }
         if (inputDate.value > inputDate.max) {
           hint.textContent = 'Datas futuras não são permitidas.';
           hint.classList.add('error-msg');
+          inputDate.classList.add('campo-erro'); // 🔴 borda vermelha
           return;
+  
         }
         hint.style.display = 'none';
         const [ano, mes, dia] = inputDate.value.split('-').map(Number);
@@ -214,14 +226,45 @@
     const faturVal = faturamentoInput.getNumericValue();
     const exportVal = exportacaoSelect.value;
     const faltam = [];
-    if (!anexo) faltam.push('anexo');
-    if (rbtVal === null) faltam.push('RBT');
-    if (faturVal === null) faltam.push('faturamento');
-    if (!exportVal) faltam.push('exportação');
+
+    // --- ANEXO ---
+    if (!anexo) {
+      faltam.push('Anexo');
+      anexoSelect.classList.add('campo-erro');
+    } else {
+      anexoSelect.classList.remove('campo-erro');
+    }
+
+    // --- RBT ---
+    if (rbtVal === null) {
+      faltam.push('RBT');
+      rbtInput.classList.add('campo-erro');
+    } else {
+      rbtInput.classList.remove('campo-erro');
+    }
+
+    // --- FATURAMENTO ---
+    if (faturVal === null) {
+      faltam.push('Faturamento');
+      faturamentoInput.classList.add('campo-erro');
+    } else {
+      faturamentoInput.classList.remove('campo-erro');
+    }
+
+    // --- EXPORTAÇÃO ---
+    if (!exportVal) {
+      faltam.push('Exportação');
+      exportacaoSelect.classList.add('campo-erro');
+    } else {
+      exportacaoSelect.classList.remove('campo-erro');
+    }
+
     if (faltam.length) {
       errorsDiv.textContent = 'Preencha: ' + faltam.join(', ');
       return;
     }
+
+    // (restante do código continua igual)
 
     const finalObj = {
       anexo,
