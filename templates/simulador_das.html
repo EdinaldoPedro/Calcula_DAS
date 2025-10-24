@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Simulador DAS</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <header><h1><i data-lucide="calculator"></i> Cálculo Simples Nacional — DAS</h1></header>
+  <main>
+    <div class="wrap">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <strong style="color:var(--accent)">Informe o cenário</strong>
+        <span style="font-size:12px;color:#666">Preencha e clique em "Verificar e Calcular"</span>
+      </div>
+
+      <div class="grid">
+        <div class="card" id="left-card">
+          <div class="label"><i data-lucide="layers"></i> Qual anexo?</div>
+          <select id="anexo">
+            <option value="">-- selecione --</option>
+            <option>Anexo I - Comércio</option>
+            <option>Anexo II - Indústria</option>
+            <option>Anexo III - Serviço</option>
+            <option>Anexo IV - Serviço</option>
+            <option>Anexo V - Serviço</option>
+          </select>
+
+          <div class="label" style="margin-top:6px"><i data-lucide="activity"></i> Você sabe o RBT da sua PJ?</div>
+          <select id="rbt-conhece">
+            <option value="">-- selecione --</option>
+            <option>Sim</option>
+            <option>Não</option>
+          </select>
+
+          <div id="rbt-dynamic-area"></div>
+        </div>
+
+        <div class="card content-right">
+          <div class="label"><i data-lucide="file-text"></i> Faturamento para cálculo</div>
+          <input id="faturamento" class="currency" placeholder="R$ —" />
+
+          <div class="label" style="margin-top:8px"><i data-lucide="globe"></i> É exportação de serviços?</div>
+          <select id="exportacao">
+            <option value="">-- selecione --</option>
+            <option>Sim</option>
+            <option>Não</option>
+          </select>
+
+          <!-- botão movido para dentro do card -->
+          <div class="action-right">
+            <button id="btnEnviar"><i data-lucide="check-circle"></i> Verificar e Calcular</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="errors" id="errors" aria-live="polite"></div>
+
+
+      <div id="resultArea" class="result-wrapper"></div>
+    </div>
+  </main>
+
+  <footer style="position:fixed;bottom:0;left:0;right:0;height:48px;background:#f1f3f6;border-top:1px solid #e6eef5;display:flex;align-items:center;justify-content:center;font-size:13px">
+    Simples Nacional • v2.2 • Desenvolvido por Edinaldo P.S.
+  </footer>
+
+<script>
+  lucide.createIcons();
+  const anexoMap = {
+    "Anexo I - Comércio": 1,
+    "Anexo II - Indústria": 2,
+    "Anexo III - Serviço": 3,
+    "Anexo IV - Serviço": 4,
+    "Anexo V - Serviço": 5
+  };
+
+  const rbtConheceSelect = document.getElementById('rbt-conhece');
+  const rbtDynamicArea = document.getElementById('rbt-dynamic-area');
+  const faturamentoInput = document.getElementById('faturamento');
+  const exportacaoSelect = document.getElementById('exportacao');
+  const btnEnviar = document.getElementById('btnEnviar');
+  const anexoSelect = document.getElementById('anexo');
+  const errorsDiv = document.getElementById('errors');
+  const resultArea = document.getElementById('resultArea');
+
+  const rbtInput = document.createElement('input');
+  rbtInput.className = 'currency';
+  rbtInput.placeholder = 'R$ —';
+  attachCurrencyBehaviorSmart(rbtInput);
+
+  rbtConheceSelect.addEventListener('change', () => {
+    rbtDynamicArea.innerHTML = '';
+    errorsDiv.textContent = '';
+    if (rbtConheceSelect.value === 'Sim') {
+      const label = document.createElement('div'); label.className = 'label';
+      label.innerHTML = '<i data-lucide="coins"></i> Informe o RBT';
+      rbtDynamicArea.appendChild(label);
+      rbtDynamicArea.appendChild(rbtInput);
+      lucide.createIcons();
+    } else if (rbtConheceSelect.value === 'Não') {
+      const block = document.createElement('div');
+      block.className = 'dynamic-block';
+      const label = document.createElement('div');
+      label.className = 'label';
+      label.innerHTML = '<i data-lucide="calendar"></i> Data de abertura da PJ';
+      const inputDate = document.createElement('input');
+      inputDate.type = 'date';
+      const hoje = new Date();
+      inputDate.max = hoje.toISOString().split('T')[0];
+      const hint = document.createElement('div');
+      hint.className = 'hint';
+      hint.textContent = 'Se ainda não tem PJ aberta, coloque a data de hoje.';
+      const btn = document.createElement('button');
+      btn.textContent = 'Confirmar data';
+      const monthsArea = document.createElement('div');
+      monthsArea.style.marginTop = '10px';
+      block.append(label, inputDate, btn, hint, monthsArea);
+      rbtDynamicArea.appendChild(block);
+      lucide.createIcons();
+
+      btn.addEventListener('click', () => {
+        monthsArea.innerHTML = '';
+        errorsDiv.textContent = '';
+
+        // reseta borda
+        inputDate.classList.remove('campo-erro');
+
+        if (!inputDate.value) {
+          hint.textContent = 'Informe a data de abertura.';
+          hint.classList.add('error-msg');
+          inputDate.classList.add('campo-erro'); // 🔴 borda vermelha
+          return;
+        }
+        if (inputDate.value > inputDate.max) {
+          hint.textContent = 'Datas futuras não são permitidas.';
+          hint.classList.add('error-msg');
+          inputDate.classList.add('campo-erro'); // 🔴 borda vermelha
+          return;
+  
+        }
+        hint.style.display = 'none';
+        const [ano, mes, dia] = inputDate.value.split('-').map(Number);
+        const abertura = new Date(ano, mes - 1, dia);
+        const info = computeMonthsAndStart(abertura);
+        const meses = info.months; const startDate = info.startDate;
+        const hojeDate = new Date();
+        const grid = document.createElement('div');
+        grid.className = 'months-grid';
+        const inputs = [];
+
+        // cria tabela de 2 colunas, até 6 linhas
+        const table = document.createElement('table');
+        table.className = 'month-table';
+
+        let row;
+        for (let i = 0; i < meses; i++) {
+          const d = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
+          if (d > hojeDate) break;
+
+          // cria nova linha a cada 2 colunas
+          if (i % 2 === 0) {
+            row = document.createElement('tr');
+            table.appendChild(row);
+          }
+
+          const cell = document.createElement('td');
+          const wrapper = document.createElement('div');
+          wrapper.className = 'month-wrapper';
+
+          const tag = document.createElement('div'); 
+          tag.className = 'month-tag';
+          tag.textContent = abreviarMes(d);
+
+          const inp = document.createElement('input');
+          inp.type = 'text';
+          inp.className = 'currency month-input';
+          inp.placeholder = 'R$ —';
+          attachCurrencyBehaviorSmart(inp);
+
+          wrapper.append(tag, inp);
+          cell.appendChild(wrapper);
+          row.appendChild(cell);
+
+          inputs.push(inp);
+        }
+
+        // adiciona tabela no grid
+        grid.appendChild(table);
+        monthsArea.appendChild(grid);
+        lucide.createIcons();
+
+
+        function tryAutoCalculate() {
+          if (inputs.length === 0) {
+            rbtInput.setNumericValue(0);
+            return;
+          }
+          const allFilled = inputs.every(i => i.getNumericValue() !== null);
+          if (!allFilled) return;
+          const total = inputs.reduce((s, i) => s + i.getNumericValue(), 0);
+          const media = total / inputs.length;
+          const rbtCalc = media * 12;
+          rbtInput.setNumericValue(rbtCalc);
+        }
+        inputs.forEach(i => {
+          i.addEventListener('blur', tryAutoCalculate);
+          i.addEventListener('input', tryAutoCalculate);
+          i.addEventListener('paste', () => setTimeout(tryAutoCalculate, 50));
+        });
+        tryAutoCalculate();
+      });
+    } else { rbtDynamicArea.innerHTML = ''; }
+  });
+
+  attachCurrencyBehaviorSmart(faturamentoInput);
+
+  btnEnviar.addEventListener('click', async () => {
+    errorsDiv.textContent = '';
+    resultArea.innerHTML = '';
+
+    const anexo = anexoMap[anexoSelect.value];
+    const rbtVal = rbtInput.getNumericValue();
+    const faturVal = faturamentoInput.getNumericValue();
+    const exportVal = exportacaoSelect.value;
+    const faltam = [];
+
+    // --- ANEXO ---
+    if (!anexo) {
+      faltam.push('Anexo');
+      anexoSelect.classList.add('campo-erro');
+    } else {
+      anexoSelect.classList.remove('campo-erro');
+    }
+
+    // --- RBT ---
+    if (rbtVal === null) {
+      faltam.push('RBT');
+      rbtInput.classList.add('campo-erro');
+    } else {
+      rbtInput.classList.remove('campo-erro');
+    }
+
+    // --- FATURAMENTO ---
+    if (faturVal === null) {
+      faltam.push('Faturamento');
+      faturamentoInput.classList.add('campo-erro');
+    } else {
+      faturamentoInput.classList.remove('campo-erro');
+    }
+
+    // --- EXPORTAÇÃO ---
+    if (!exportVal) {
+      faltam.push('Exportação');
+      exportacaoSelect.classList.add('campo-erro');
+    } else {
+      exportacaoSelect.classList.remove('campo-erro');
+    }
+
+    if (faltam.length) {
+      errorsDiv.textContent = 'Preencha: ' + faltam.join(', ');
+      return;
+    }
+
+    // (restante do código continua igual)
+
+    const finalObj = {
+      anexo,
+      rbt: Number(rbtVal.toFixed(2)),
+      faturamento: Number(faturVal.toFixed(2)),
+      exportacao_servico: exportVal === 'Sim' ? 1 : 0
+    };
+
+    try {
+      const resp = await fetch('/calcular_das', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(finalObj)
+      });
+      const data = await resp.json();
+      console.log("Resposta /calcular_das:", data);
+
+      const calcPadrao = data["Cálculo Padrão"] || {};
+      const calcFatorR = data["Cálculo Alternativo (como Anexo III / Fator-R)"] || null;
+
+      const cardBase = (titulo, resultado) => `
+        <div class="card" style="flex:1; margin-top:12px;">
+          <div style="font-weight:600;color:var(--accent);margin-bottom:6px;">
+            ${titulo}
+          </div>
+          <div style="display:flex;gap:24px;font-size:14px;color:#222;">
+            <div><strong>Faixa:</strong> ${resultado.faixa ?? '—'}</div>
+            <div><strong>Alíquota Efetiva:</strong> ${(resultado.aliquota_efetiva_percent ?? 0).toFixed(4)}%</div>
+            <div><strong>Valor do DAS:</strong> R$ ${(resultado.valor_das_a_pagar ?? 0).toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>
+          </div>
+        </div>
+      `;
+
+      const wrapper = document.createElement('div');
+      wrapper.style.display = 'flex';
+      wrapper.style.gap = '12px';
+      wrapper.style.alignItems = 'flex-start';
+
+      wrapper.innerHTML += cardBase("Calculo do DAS a pagar", calcPadrao);
+
+      if (calcFatorR) {
+        wrapper.innerHTML += `
+          <div style="flex:1; display:flex; flex-direction:column; gap:12px;">
+            ${cardBase("Calculo do DAS a pagar (Optando pelo Fator-R)", calcFatorR)}
+            <div id="futuroResultado" class="card" style="min-height:120px;background:#fbfcfe;border:1px dashed #d7e3f6;">
+              <div style="font-weight:600;color:var(--accent);margin-bottom:6px;">Cálculo do Pró-labore</div>
+              <div id="darfResult" style="font-size:14px;color:#222;">Carregando...</div>
+            </div>
+          </div>
+        `;
+
+        // ➕ NOVA CHAMADA: calcular o DARF
+        const respDarf = await fetch('/calcular_darf_pro_labore', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            anexo: 3,
+            rbt: Number(rbtVal.toFixed(2)),
+            faturamento: Number(faturVal.toFixed(2)),
+            exportacao_servico: exportVal === 'Sim' ? 1 : 0
+          })
+        });
+
+        const dataDarf = await respDarf.json();
+        console.log("Resposta /calcular_darf_pro_labore:", dataDarf);
+
+        const darfDiv = wrapper.querySelector('#darfResult');
+
+        // se servidor retornar erro no JSON
+        if (dataDarf && dataDarf.erro) {
+          darfDiv.innerHTML = `<div style="color: #c0392b">Erro no cálculo DARF: ${dataDarf.erro}</div>`;
+        } else {
+          // tenta chaves curtas primeiro, senão usa as verbosas
+          const pro = dataDarf?.pro_labore ?? dataDarf?.['Pró-labore (Base de Cálculo)'];
+          const inss = dataDarf?.inss ?? dataDarf?.['Contribuição INSS (11%)'];
+          const baseir = dataDarf?.base_irpf ?? dataDarf?.['Base para Cálculo do IRPF'];
+          const ir = dataDarf?.ir ?? dataDarf?.['Imposto de Renda (IR)'];
+          const total = dataDarf?.total_darf ?? dataDarf?.['Total a Recolher (INSS + IR) Darf'];
+
+          function fmt(v) {
+            if (v === null || v === undefined) return '—';
+            return Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+          }
+
+          darfDiv.innerHTML = `
+            <div><strong>Pró-labore (Base de Cálculo):</strong> R$ ${fmt(pro)}</div>
+            <div><strong>Contribuição INSS (11%):</strong> R$ ${fmt(inss)}</div>
+            <div><strong>Base para Cálculo do IRPF:</strong> R$ ${fmt(baseir)}</div>
+            <div><strong>Imposto de Renda (IR):</strong> R$ ${fmt(ir)}</div>
+            <div style="margin-top:6px;"><strong>Total a Recolher (INSS + IR) Darf:</strong> R$ ${fmt(total)}</div>
+          `;
+        }
+      }
+
+      resultArea.appendChild(wrapper);
+    } catch (err) {
+      console.error(err);
+      errorsDiv.textContent = 'Erro ao enviar/receber do servidor: ' + (err.message || err);
+    }
+  });
+
+  // ====== FUNÇÕES AUXILIARES ======
+
+  function attachCurrencyBehaviorSmart(inp) {
+    inp.addEventListener('input', () => {
+      let val = inp.value.replace(/[^\d]/g, '');
+      if (val === '') { inp.dataset.value = ''; inp.value = ''; return; }
+      let num = parseFloat(val) / 100;
+      inp.dataset.value = num;
+      inp.value = num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    });
+    inp.addEventListener('focus', () => {
+      if (!inp.dataset.value) inp.value = '';
+    });
+    inp.addEventListener('paste', (ev) => {
+      ev.preventDefault();
+      const text = (ev.clipboardData || window.clipboardData).getData('text');
+      const num = parseToNumber(text);
+      if (num !== null) {
+        inp.dataset.value = num;
+        inp.value = num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      }
+    });
+    inp.getNumericValue = () => inp.dataset.value ? parseFloat(inp.dataset.value) : null;
+    inp.setNumericValue = (num) => {
+      inp.dataset.value = num;
+      inp.value = num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    };
+  }
+
+  function parseToNumber(s) {
+    if (s === null || s === undefined) return null;
+    let t = String(s).trim();
+    if (!t) return null;
+    t = t.replace(/\s/g, '').replace(/R\$/gi, '');
+    const comma = t.indexOf(',');
+    const dot = t.indexOf('.');
+    if (dot !== -1 && comma !== -1) t = t.replace(/\./g, '').replace(',', '.');
+    else if (comma !== -1 && dot === -1) t = t.replace(',', '.');
+    t = t.replace(/[^0-9\.\-]/g, '');
+    const n = Number(t);
+    return isNaN(n) ? null : n;
+  }
+
+  function abreviarMes(dateObj) {
+    const meses = ["Jan.", "Fev.", "Mar.", "Abr.", "Mai.", "Jun.", "Jul.", "Ago.", "Set.", "Out.", "Nov.", "Dez."];
+    return `${meses[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+  }
+
+  function computeMonthsAndStart(abertura) {
+    const hoje = new Date();
+    const isSameMonthAndYear = abertura.getFullYear() === hoje.getFullYear() && abertura.getMonth() === hoje.getMonth();
+    if (isSameMonthAndYear) {
+      return { months: 1, startDate: new Date(hoje.getFullYear(), hoje.getMonth(), 1) };
+    }
+    let orig = (hoje.getFullYear() - abertura.getFullYear()) * 12 + (hoje.getMonth() - abertura.getMonth());
+    if (hoje.getDate() < abertura.getDate()) orig--;
+    if (orig < 1) orig = 0;
+    const months = Math.min(orig, 12);
+    const rawDiff = (hoje.getFullYear() - abertura.getFullYear()) * 12 + (hoje.getMonth() - abertura.getMonth());
+    const lastCompleted = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+    const startDate = rawDiff > 12 ? new Date(lastCompleted.getFullYear(), lastCompleted.getMonth() - (months - 1), 1) : new Date(abertura.getFullYear(), abertura.getMonth(), 1);
+    return { months, startDate };
+  }
+</script>
+
+</body>
+</html>

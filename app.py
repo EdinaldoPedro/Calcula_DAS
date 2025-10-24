@@ -6,7 +6,8 @@ app = Flask(__name__, template_folder="templates")  # ajuste se seus templates e
 
 @app.route("/")
 def home():
-    return render_template("dados.html")
+
+    return render_template("simulador_das.html")
 
 @app.route("/calcular_das", methods=["POST"])
 def calcular_das():
@@ -30,7 +31,6 @@ def calcular_darf():
     except Exception as e:
         print("❌ Erro no cálculo DARF:", e)
         return jsonify({"erro": str(e)}), 400
-
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
