@@ -6,7 +6,7 @@ app = Flask(__name__, template_folder="templates")  # ajuste se seus templates e
 
 @app.route("/")
 def home():
-    return render_template("dados.html")
+    return render_template("simulador_das.html")
 
 @app.route("/calcular_das", methods=["POST"])
 def calcular_das():
