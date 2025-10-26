@@ -4,9 +4,9 @@
   <meta charset="utf-8" />
   <title>Simulador DAS</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=3">
   <script src="https://unpkg.com/lucide@latest"></script>
-</head>
+  
 <body>
   <header><h1><i data-lucide="calculator"></i> Cálculo Simples Nacional — DAS</h1></header>
   <main>
@@ -58,8 +58,7 @@
 
       <div class="errors" id="errors" aria-live="polite"></div>
 
-
-      <div id="resultArea" class="result-wrapper"></div>
+      <div id="resultArea" class="result-wrapper" style="margin-top:14px"></div>
     </div>
   </main>
 
@@ -139,7 +138,6 @@
           hint.classList.add('error-msg');
           inputDate.classList.add('campo-erro'); // 🔴 borda vermelha
           return;
-  
         }
         hint.style.display = 'none';
         const [ano, mes, dia] = inputDate.value.split('-').map(Number);
@@ -170,7 +168,7 @@
           const wrapper = document.createElement('div');
           wrapper.className = 'month-wrapper';
 
-          const tag = document.createElement('div'); 
+          const tag = document.createElement('div');
           tag.className = 'month-tag';
           tag.textContent = abreviarMes(d);
 
@@ -191,7 +189,6 @@
         grid.appendChild(table);
         monthsArea.appendChild(grid);
         lucide.createIcons();
-
 
         function tryAutoCalculate() {
           if (inputs.length === 0) {
@@ -264,8 +261,6 @@
       return;
     }
 
-    // (restante do código continua igual)
-
     const finalObj = {
       anexo,
       rbt: Number(rbtVal.toFixed(2)),
@@ -282,41 +277,25 @@
       const data = await resp.json();
       console.log("Resposta /calcular_das:", data);
 
-      const calcPadrao = data["Cálculo Padrão"] || {};
-      const calcFatorR = data["Cálculo Alternativo (como Anexo III / Fator-R)"] || null;
+      // Normaliza chaves (padrão e alternativo podem existir ou não)
+      const calcPadrao = data["Cálculo Padrão"] || data["Cálculo Padrão"] === undefined ? data["Cálculo Padrão"] : null;
+      const calcAlt = data["Cálculo Alternativo (como Anexo III / Fator-R)"] || data["Cálculo Alternativo (como Anexo III / Fator-R)"] === undefined ? data["Cálculo Alternativo (como Anexo III / Fator-R)"] : null;
+      // But safer:
+      const padrao = data["Cálculo Padrão"] || data["Cálculo Padrão"] !== undefined ? data["Cálculo Padrão"] : null;
+      const alt = data["Cálculo Alternativo (como Anexo III / Fator-R)"] || data["Cálculo Alternativo (como Anexo III / Fator-R)"] !== undefined ? data["Cálculo Alternativo (como Anexo III / Fator-R)"] : null;
 
-      const cardBase = (titulo, resultado) => `
-        <div class="card" style="flex:1; margin-top:12px;">
-          <div style="font-weight:600;color:var(--accent);margin-bottom:6px;">
-            ${titulo}
-          </div>
-          <div style="display:flex;gap:24px;font-size:14px;color:#222;">
-            <div><strong>Faixa:</strong> ${resultado.faixa ?? '—'}</div>
-            <div><strong>Alíquota Efetiva:</strong> ${(resultado.aliquota_efetiva_percent ?? 0).toFixed(4)}%</div>
-            <div><strong>Valor do DAS:</strong> R$ ${(resultado.valor_das_a_pagar ?? 0).toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>
-          </div>
-        </div>
-      `;
+      // We'll use whichever exist:
+      const hasPadrao = !!data["Cálculo Padrão"];
+      const hasAlt = !!data["Cálculo Alternativo (como Anexo III / Fator-R)"];
+      const calc1 = data["Cálculo Padrão"];
+      const calc2 = data["Cálculo Alternativo (como Anexo III / Fator-R)"];
 
-      const wrapper = document.createElement('div');
-      wrapper.style.display = 'flex';
-      wrapper.style.gap = '12px';
-      wrapper.style.alignItems = 'flex-start';
+      // monta a UI dinâmica
+      buildResultsUI(calc1, calc2);
 
-      wrapper.innerHTML += cardBase("Calculo do DAS a pagar", calcPadrao);
-
-      if (calcFatorR) {
-        wrapper.innerHTML += `
-          <div style="flex:1; display:flex; flex-direction:column; gap:12px;">
-            ${cardBase("Calculo do DAS a pagar (Optando pelo Fator-R)", calcFatorR)}
-            <div id="futuroResultado" class="card" style="min-height:120px;background:#fbfcfe;border:1px dashed #d7e3f6;">
-              <div style="font-weight:600;color:var(--accent);margin-bottom:6px;">Cálculo do Pró-labore</div>
-              <div id="darfResult" style="font-size:14px;color:#222;">Carregando...</div>
-            </div>
-          </div>
-        `;
-
-        // ➕ NOVA CHAMADA: calcular o DARF
+      // Se houver cálculo alternativo e for retornado DARF (via chamada separada), já fazemos a chamada como antes
+      if (calc2) {
+        // solicitamos DARF para exibir na coluna do pró-labore (usando anexo 3)
         const respDarf = await fetch('/calcular_darf_pro_labore', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -327,44 +306,217 @@
             exportacao_servico: exportVal === 'Sim' ? 1 : 0
           })
         });
-
         const dataDarf = await respDarf.json();
-        console.log("Resposta /calcular_darf_pro_labore:", dataDarf);
-
-        const darfDiv = wrapper.querySelector('#darfResult');
-
-        // se servidor retornar erro no JSON
-        if (dataDarf && dataDarf.erro) {
-          darfDiv.innerHTML = `<div style="color: #c0392b">Erro no cálculo DARF: ${dataDarf.erro}</div>`;
-        } else {
-          // tenta chaves curtas primeiro, senão usa as verbosas
-          const pro = dataDarf?.pro_labore ?? dataDarf?.['Pró-labore (Base de Cálculo)'];
-          const inss = dataDarf?.inss ?? dataDarf?.['Contribuição INSS (11%)'];
-          const baseir = dataDarf?.base_irpf ?? dataDarf?.['Base para Cálculo do IRPF'];
-          const ir = dataDarf?.ir ?? dataDarf?.['Imposto de Renda (IR)'];
-          const total = dataDarf?.total_darf ?? dataDarf?.['Total a Recolher (INSS + IR) Darf'];
-
-          function fmt(v) {
-            if (v === null || v === undefined) return '—';
-            return Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-          }
-
-          darfDiv.innerHTML = `
-            <div><strong>Pró-labore (Base de Cálculo):</strong> R$ ${fmt(pro)}</div>
-            <div><strong>Contribuição INSS (11%):</strong> R$ ${fmt(inss)}</div>
-            <div><strong>Base para Cálculo do IRPF:</strong> R$ ${fmt(baseir)}</div>
-            <div><strong>Imposto de Renda (IR):</strong> R$ ${fmt(ir)}</div>
-            <div style="margin-top:6px;"><strong>Total a Recolher (INSS + IR) Darf:</strong> R$ ${fmt(total)}</div>
-          `;
-        }
+        // Atualiza a área do pró-labore (se existir)
+        populateProLaboreCard(dataDarf);
+      } else {
+        // Caso não haja calc alternativo, tentamos chamar darf com anexo 3 também?
+        // Não mexemos nisso automaticamente — seu fluxo atual somente chama se houver alternativa.
       }
 
-      resultArea.appendChild(wrapper);
     } catch (err) {
       console.error(err);
       errorsDiv.textContent = 'Erro ao enviar/receber do servidor: ' + (err.message || err);
     }
   });
+
+  // ----------------- Funções de UI -----------------
+
+  function buildResultsUI(calcPadrao, calcFatorR) {
+    resultArea.innerHTML = '';
+
+    const hasPadrao = !!calcPadrao;
+    const hasFator = !!calcFatorR;
+
+    if (hasPadrao && hasFator) {
+      // layout 3x1 — cada card contém seu próprio botão e rateio interno
+      const grid = document.createElement('div');
+      grid.className = 'results-grid-3';
+
+      const col1 = document.createElement('div');
+      col1.innerHTML = cardBase("Cálculo do DAS a pagar", calcPadrao, "padrao");
+      grid.appendChild(col1);
+
+      const col2 = document.createElement('div');
+      col2.innerHTML = cardBase("Cálculo do DAS a pagar (Optando pelo Fator-R)", calcFatorR, "fatorr");
+      grid.appendChild(col2);
+
+      const col3 = document.createElement('div');
+      col3.innerHTML = `
+      <div class="card result-card" style="background:#fbfcfe;border:1px dashed #e6eef8;">
+        <div style="font-weight:600;color:var(--accent);margin-bottom:6px;">Cálculo do Pró-labore</div>
+        <div id="prolaboreCardContent">Carregando...</div>
+      </div>
+    `;
+      grid.appendChild(col3);
+
+      resultArea.appendChild(grid);
+      attachRateioToggles(['padrao', 'fatorr']);
+
+    } else if (hasPadrao && !hasFator) {
+      // layout 2x1 — apenas um card com botão e rateio interno
+      const grid = document.createElement('div');
+      grid.className = 'results-grid-2';
+
+      const col1 = document.createElement('div');
+      col1.innerHTML = cardBase("Cálculo do DAS a pagar", calcPadrao, "padrao");
+      grid.appendChild(col1);
+
+      const col2 = document.createElement('div');
+      col2.innerHTML = `
+      <div class="card result-card" style="min-height:48px;display:flex;align-items:center;justify-content:center;color:#999;background:transparent;border:none;">&nbsp;</div>`;
+      grid.appendChild(col2);
+
+      resultArea.appendChild(grid);
+      attachRateioToggles(['padrao']);
+
+    } else {
+      resultArea.innerHTML = '<div class="card">Nenhum resultado retornado.</div>';
+    }
+
+    lucide.createIcons();
+  }
+
+  // ================ FUNÇÃO MODIFICADA ================
+  function cardBase(titulo, resultado, idSuffix) {
+    const totalDAS = resultado.valor_das_a_pagar ?? 0; // Usar o número puro para cálculos
+    const valorDAS = totalDAS.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    const faixa = resultado.faixa ?? '—';
+    const aliquota = (resultado.aliquota_efetiva_percent ?? 0).toFixed(4);
+    const r = resultado.rateio || {};
+
+    // Precisamos saber se é exportação para replicar a lógica de "Isento"
+    const isExportacao = document.getElementById('exportacao').value === 'Sim';
+
+    const keys = [
+        { label: 'IRPJ', key: 'IRPJ' },
+        { label: 'CSLL', key: 'CSLL' },
+        { label: 'COFINS', key: 'COFINS' },
+        { label: 'PIS/Pasep', key: 'PIS/Pasep' }, // A chave no JSON é "PIS/Pasep"
+        { label: 'CPP', key: 'CPP' },
+        { label: 'ISS', key: 'ISS' }
+    ];
+
+    const rateioLinesHTML = keys.map(item => {
+        const valorTributo = r[item.key] ?? 0;
+        
+        // Verifica a condição de "Isento" baseada nos seus logs (Exportação "Sim" zera PIS, COFINS, ISS)
+        const isIsento = isExportacao && (item.key === 'COFINS' || item.key === 'PIS/Pasep' || item.key === 'ISS');
+
+        if (isIsento) {
+            // Exibe "Isento" como no seu log
+            return `<div><strong>${item.label}:</strong> Isento</div>`;
+        }
+        
+        // Se não for "Isento", calcula e mostra os valores R$ e %
+        const percent = (totalDAS > 0) ? (valorTributo / totalDAS) * 100 : 0;
+        const valorStr = valorTributo.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        const percentStr = percent.toFixed(2); // ex: 36.31%
+
+        return `<div><strong>${item.label}:</strong> R$ ${valorStr} (${percentStr}%)</div>`;
+    }).join('');
+
+
+    return `
+    <div class="card" style="flex:1; margin-top:12px;">
+      <div style="font-weight:600;color:var(--accent);margin-bottom:6px;">${titulo}</div>
+      <div style="display:flex;gap:24px;font-size:14px;color:#222;">
+        <div><strong>Faixa:</strong> ${faixa}</div>
+        <div><strong>Alíquota Efetiva:</strong> ${aliquota}%</div>
+        <div><strong>Valor do DAS:</strong> R$ ${valorDAS}</div>
+      </div>
+
+      <button class="btn-rateio" id="btnRateio-${idSuffix}">Mostrar impostos detalhado</button>
+      <div class="rateio-container" id="rateio-${idSuffix}">
+        ${rateioLinesHTML}
+      </div>
+    </div>
+  `;
+  }
+  // ================ FIM DA FUNÇÃO MODIFICADA ================
+
+  function rateioBoxHTML(resultado, idSuffix) {
+    // extrai rateio do objeto JSON (padrão: resultado.rateio)
+    const r = resultado?.rateio || {};
+    // mapeia PIS/Pasep -> PIS
+    function val(k) {
+      if (r[k] === undefined || r[k] === null) return 0;
+      return Number(r[k]);
+    }
+    // labels and keys
+    const lines = [
+      {label: 'IRPJ', key: 'IRPJ'},
+      {label: 'CSLL', key: 'CSLL'},
+      {label: 'COFINS', key: 'COFINS'},
+      {label: 'PIS', key: 'PIS/Pasep'},
+      {label: 'CPP', key: 'CPP'},
+      {label: 'ISS', key: 'ISS'}
+    ];
+    const parts = lines.map(it => {
+      const v = val(it.key);
+      if (v === 0) return `<div><strong>${it.label}:</strong> R$ 0,00</div>`;
+      return `<div><strong>${it.label}:</strong> R$ ${Number(v).toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>`;
+    }).join('');
+    // wrapper
+    return `
+      <div class="card result-card" style="margin-top:8px; background:#fff;">
+        <div style="padding:6px 0 0 0; font-weight:600; color:#2b5be6; margin-bottom:8px;">Rateio por tributo</div>
+        <div style="padding:8px;border:1px solid #eef3fb;border-radius:6px;background:#fff;">
+          ${parts}
+        </div>
+      </div>
+    `;
+  }
+
+  function attachRateioToggles(ids) {
+    ids.forEach(sufixo => {
+      const btn = document.getElementById(`btnRateio-${sufixo}`);
+      // A LINHA ABAIXO É A CORREÇÃO:
+      const box = document.getElementById(`rateio-${sufixo}`); // Removido o "-container"
+
+      if (btn && box) {
+        // preenche conteúdo do rateio (pois inicialmente a rateio-container gerado no cardBase estava vazio)
+        // find the result object associated (padrao or fatorr) by reading current DOM? We'll re-fill by using the JSON currently displayed:
+        // Simpler: parse displayed card and fill using existing resultArea structure: but we already rendered the rateioBoxHTML into the lower line.
+        // For safety, toggle display:
+        btn.addEventListener('click', () => {
+          box.classList.toggle('active');
+        });
+      }
+    });
+  }
+
+  function populateProLaboreCard(dataDarf) {
+    const target = document.getElementById('prolaboreCardContent');
+    if (!target) return;
+    if (!dataDarf) {
+      target.innerHTML = '<div style="color:#c0392b">Erro ao calcular pró-labore</div>';
+      return;
+    }
+    if (dataDarf.erro) {
+      target.innerHTML = `<div style="color:#c0392b">Erro: ${dataDarf.erro}</div>`;
+      return;
+    }
+    // tenta chaves curtas primeiro, senão as verbosas
+    const pro = dataDarf?.pro_labore ?? dataDarf?.['Pró-labore (Base de Cálculo)'];
+    const inss = dataDarf?.inss ?? dataDarf?.['Contribuição INSS (11%)'];
+    const baseir = dataDarf?.base_irpf ?? dataDarf?.['Base para Cálculo do IRPF'];
+    const ir = dataDarf?.ir ?? dataDarf?.['Imposto de Renda (IR)'];
+    const total = dataDarf?.total_darf ?? dataDarf?.['Total a Recolher (INSS + IR) Darf'];
+
+    function fmt(v) {
+      if (v === null || v === undefined) return '—';
+      return Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    }
+
+    target.innerHTML = `
+      <div><strong>Pró-labore (Base de Cálculo):</strong> R$ ${fmt(pro)}</div>
+      <div><strong>Contribuição INSS (11%):</strong> R$ ${fmt(inss)}</div>
+      <div><strong>Base para Cálculo do IRPF:</strong> R$ ${fmt(baseir)}</div>
+      <div><strong>Imposto de Renda (IR):</strong> R$ ${fmt(ir)}</div>
+      <div style="margin-top:6px;"><strong>Total a Recolher (INSS + IR) Darf:</strong> R$ ${fmt(total)}</div>
+    `;
+  }
 
   // ====== FUNÇÕES AUXILIARES ======
 

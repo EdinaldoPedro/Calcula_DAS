@@ -1,11 +1,7 @@
 /* === FONTES === */
 @font-face {
   font-family: 'LT Energy';
-<<<<<<< HEAD
-  src: url('fonts/LT-Energy-Regular.ttf') format('truetype');
-=======
   src: url('/static/css/LT-Energy-Regular.ttf') format('truetype');
->>>>>>> dev
   font-weight: 400;
   font-style: normal;
 }
@@ -19,11 +15,7 @@
 
 @font-face {
   font-family: 'LT Energy Narrow';
-<<<<<<< HEAD
-  src: url('fonts/LT-Energy-Narrow-Bold-Semi-Italic.ttf') format('truetype');
-=======
   src: url('/static/css/LT-Energy-Narrow-Bold-Semi-Italic.ttf') format('truetype');
->>>>>>> dev
   font-weight: 700;
   font-style: italic;
 }
@@ -269,4 +261,73 @@ footer {
 .campo-erro {
     border: 2px solid red !important;
     box-shadow: 0 0 5px rgba(255, 0, 0, 0.5) !important;
+}
+
+.btn-rateio {
+  margin-top: 8px;
+  background: #eaf0ff;
+  color: var(--accent);
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-family: 'LT Energy Narrow', sans-serif;
+  font-size: 13px;
+  font-style: italic;
+  transition: all 0.25s ease;
+}
+
+.btn-rateio:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.rateio-container {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: all 0.45s ease;
+  background: #f9faff;
+  border: 1px solid #dce3f5;
+  border-radius: 8px;
+  margin-top: 8px;
+  padding: 0 12px;
+}
+
+.rateio-container.active {
+  opacity: 1;
+  max-height: 300px;
+  padding: 10px 12px;
+}
+
+/* === LAYOUT DOS RESULTADOS === */
+.results-grid-3,
+.results-grid-2 {
+  display: grid;
+  gap: 16px; /* Mesmo espaçamento do grid principal */
+  margin-top: 16px; /* Espaço acima dos resultados */
+}
+
+.results-grid-3 {
+  /* 3 colunas de larguras iguais */
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.results-grid-2 {
+  /* 2 colunas, alinhado com o grid principal */
+  grid-template-columns: 2fr 1fr;
+}
+
+/* Ajuste de fonte para o card de pró-labore (conforme solicitado) */
+#prolaboreCardContent {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Responsividade para os resultados (empilha em telas menores) */
+@media (max-width: 820px) {
+  .results-grid-3,
+  .results-grid-2 {
+    grid-template-columns: 1fr; /* Coluna única */
+  }
 }
