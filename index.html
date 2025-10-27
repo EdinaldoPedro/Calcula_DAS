@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Central de Simuladores</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+    .sim-card {
+      background: #FAFAFE;
+      border: 1px solid #E4E6F0;
+      border-radius: 14px;
+      padding: 26px 18px;
+      text-align: center;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 12px rgba(27,27,57,0.08);
+    }
+    .sim-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 14px rgba(27,27,57,0.15);
+    }
+    .sim-card i {
+      color: var(--accent);
+      width: 40px;
+      height: 40px;
+      margin-bottom: 8px;
+    }
+    .sim-card h3 {
+      font-family: 'LT Energy Narrow', sans-serif;
+      font-weight: bold;
+      font-style: italic;
+      font-size: 18px;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+    .sim-card p {
+      color: #555;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .sim-card a {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-family: 'LT Energy Narrow', sans-serif;
+      font-weight: bold;
+      font-style: italic;
+      text-decoration: none;
+      box-shadow: 0 3px 8px rgba(46,91,255,0.25);
+      transition: all 0.25s ease;
+    }
+    .sim-card a:hover {
+      background: #1B1B39;
+      box-shadow: 0 4px 10px rgba(27,27,57,0.3);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><i data-lucide="layout-grid"></i> Central de Simuladores</h1>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <h2 style="text-align:center;margin-bottom:20px;color:var(--accent);font-family:'LT Energy Narrow',sans-serif;">Escolha um simulador</h2>
+      <div class="cards-grid">
+        <!-- Simulador DAS -->
+        <div class="sim-card">
+          <i data-lucide="calculator"></i>
+          <h3>Simulador de DAS</h3>
+          <p>Calcule automaticamente o valor do DAS conforme o regime do Simples Nacional.</p>
+          <a href="{{ url_for('simulador_das') }}">Acessar</a>
+        </div>
+
+        <!-- Simulador LP -->
+        <div class="sim-card">
+          <i data-lucide="file-bar-chart"></i>
+          <h3>Simulador de Impostos (Lucro Presumido)</h3>
+          <p>Simule os tributos de uma empresa no regime de Lucro Presumido.</p>
+          <a href="{{ url_for('simulador_lp') }}">Acessar</a>
+        </div>
+
+        <!-- Simulador Rescisão -->
+        <div class="sim-card">
+          <i data-lucide="briefcase"></i>
+          <h3>Simulador de Rescisão Trabalhista</h3>
+          <p>Calcule os valores devidos em uma rescisão de contrato de trabalho.</p>
+          <a href="{{ url_for('simulador_rescisao') }}">Acessar</a>
+        </div>
+
+        <!-- Simulador NFS-e -->
+        <div class="sim-card">
+          <i data-lucide="file-input"></i>
+          <h3>Como Compor o Valor Bruto na NFS-e</h3>
+          <p>Descubra como embutir custos e impostos no valor bruto de uma nota de serviço.</p>
+          <a href="{{ url_for('simulador_nfse') }}">Acessar</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Central de Simuladores • v1.0 • Desenvolvido por Edinaldo P.S.
+  </footer>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>
