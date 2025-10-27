@@ -5,9 +5,26 @@ from calcular_darf_pro_labore import calcular_darf_pro_labore  # importe seu nov
 app = Flask(__name__, template_folder="templates")  # ajuste se seus templates estiverem em 'templates/'
 
 @app.route("/")
-def home():
 
+def index():
+    return render_template("index.html")
+
+@app.route("/simulador_das")
+def simulador_das():
     return render_template("simulador_das.html")
+
+@app.route("/simulador_lp")
+def simulador_lp():
+    return render_template("simulador_lp.html")
+
+@app.route("/simulador_rescisao")
+def simulador_rescisao():
+    return render_template("simulador_rescisao.html")
+
+@app.route("/simulador_nfse")
+def simulador_nfse():
+    return render_template("simulador_nfse.html")
+
 
 @app.route("/calcular_das", methods=["POST"])
 def calcular_das():
