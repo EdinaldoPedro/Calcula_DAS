@@ -339,3 +339,15 @@ footer {
   color: var(--primary);         /* Escurece o texto */
   text-decoration: underline;    /* Adiciona sublinhado para parecer um link */
 }
+
+.results-grid-3 .card div[style*="font-weight:600"],
+.results-grid-2 .card div[style*="font-weight:600"] {
+  font-size: 15px; 
+}
+
+/* 2. Deixa os detalhes menores (13px) */
+/* (Ex: "IRPJ: R$ 387,50..." e "Pró-labore (Base...): R$ 2.800,00") */
+.rateio-container.active div,
+#prolaboreCardContent div {
+  font-size: 13px;
+}
