@@ -1,9 +1,19 @@
+# Arquivos Python
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 *.pyd
+*.egg-info/
+
+# Ambientes virtuais
 env/
 venv/
+
+# Banco de dados local
 *.sqlite3
+
+# Sistema
 .DS_Store
-*.egg-info/
+
+# Editor
+.vscode/
