@@ -262,3 +262,80 @@ footer {
     border: 2px solid red !important;
     box-shadow: 0 0 5px rgba(255, 0, 0, 0.5) !important;
 }
+
+/* Estado base - FECHADO */
+.rateio-container {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  padding: 0 12px; /* SEM padding vertical quando fechado */
+  
+  /* Estilos */
+  background: #fbfcfe;
+  border: 1px solid #dce3f5;
+  border-radius: 8px;
+  margin-top: 8px;
+  
+  /* Animação */
+  transition: all 0.45s ease;
+}
+
+/* Estado ativo - ABERTO */
+.rateio-container.active {
+  opacity: 1;
+  max-height: 420px; /* Altura suficiente para o conteúdo */
+  padding: 10px 12px; /* COM padding vertical quando aberto */
+}
+
+/* === NOVAS REGRAS PARA O LAYOUT DOS RESULTADOS === */
+
+/* Define o grid de 3 colunas para os resultados */
+.results-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* Três colunas de tamanho igual */
+  gap: 16px; /* Espaçamento entre os cards */
+  margin-top: 14px;
+}
+
+/* Define o grid de 2 colunas (caso o Fator-R não se aplique) */
+.results-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+/* Faz os resultados empilharem em telas menores (celular) */
+@media (max-width: 820px) {
+  .results-grid-3,
+  .results-grid-2 {
+    grid-template-columns: 1fr; /* Uma coluna só */
+  }
+}
+
+/* === NOVO ESTILO PARA O BOTÃO "MOSTRAR IMPOSTOS" === */
+
+/* Estilo mais discreto para o botão de rateio */
+.btn-rateio {
+  background: none;              /* Remove o fundo azul */
+  color: var(--accent);          /* Usa a cor de destaque (azul) para o texto */
+  border: none;                  /* Remove a borda */
+  box-shadow: none;              /* Remove a sombra */
+  padding: 8px 0;                /* Remove preenchimento lateral, ajusta vertical */
+  margin-top: 10px;
+  font-family: 'LT Energy', sans-serif; /* Fonte normal, não a "Narrow Italic" */
+  font-weight: 600;
+  font-style: normal;            /* Remove o itálico */
+  font-size: 13px;               /* Fonte menor */
+  text-align: left;              /* Alinha o texto à esquerda */
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Efeito ao passar o mouse */
+.btn-rateio:hover {
+  background: none;              /* Mantém sem fundo */
+  box-shadow: none;              /* Mantém sem sombra */
+  color: var(--primary);         /* Escurece o texto */
+  text-decoration: underline;    /* Adiciona sublinhado para parecer um link */
+}
