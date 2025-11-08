@@ -57,16 +57,38 @@ def calcula_imposto(valor_nfse, faturamento_mensal, natureza_exportacao, aliquot
     irpj_pct = pct_eff(irpj_valor)
     irpj_ad_pct = pct_eff(irpj_adicional_valor)
 
-    # Resultado formatado: cada item com (aliquota efetiva) : valor
+        # Soma total das alíquotas efetivas
+        # Soma total das alíquotas efetivas
+    aliquota_total = pis_pct + cofins_pct + iss_pct + csll_pct + irpj_pct + irpj_ad_pct
+
+    # Total de tributos em reais
+    total_tributos = pis_valor + cofins_valor + iss_valor + csll_valor + irpj_valor + irpj_adicional_valor
+
+    # Resultado formatado (sem linha separada de alíquota total)
     resultado = {
-        f"PIS ({pis_pct:.2f}%)": pis_valor,
         f"COFINS ({cofins_pct:.2f}%)": cofins_valor,
-        f"ISS ({iss_pct:.2f}%)": iss_valor,
         f"CSLL ({csll_pct:.2f}%)": csll_valor,
         f"IRPJ ({irpj_pct:.2f}%)": irpj_valor,
         f"IRPJ Adicional ({irpj_ad_pct:.2f}%)": irpj_adicional_valor,
-        "Total Tributos da Nota": pis_valor + cofins_valor + iss_valor + csll_valor + irpj_valor + irpj_adicional_valor
+        f"ISS ({iss_pct:.2f}%)": iss_valor,
+        f"PIS ({pis_pct:.2f}%)": pis_valor,
+        f"Total Tributos da Nota ({aliquota_total:.2f}%)": total_tributos
     }
+
+    return resultado
+
+
+    # Resultado formatado: cada item com (aliquota efetiva) : valor
+    resultado = {
+        f"COFINS ({cofins_pct:.2f}%)": cofins_valor,
+        f"CSLL ({csll_pct:.2f}%)": csll_valor,
+        f"IRPJ ({irpj_pct:.2f}%)": irpj_valor,
+        f"IRPJ Adicional ({irpj_ad_pct:.2f}%)": irpj_adicional_valor,
+        f"ISS ({iss_pct:.2f}%)": iss_valor,
+        f"PIS ({pis_pct:.2f}%)": pis_valor,
+        f"Total Tributos da Nota ({aliquota_total:.2f}%)": total_tributos
+    }
+
 
     return resultado
 

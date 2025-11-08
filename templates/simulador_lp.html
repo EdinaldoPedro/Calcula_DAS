@@ -2,24 +2,175 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-  <title>Simulador de Impostos — Lucro Presumido</title>
+  <title>Simulador Lucro Presumido</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=4">
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
   <header><h1><i data-lucide="file-bar-chart"></i> Simulador de Impostos — Lucro Presumido</h1></header>
+
   <main>
-    <div class="wrap" style="text-align:center;padding:60px 20px;">
-      <i data-lucide="hammer" style="width:48px;height:48px;color:var(--accent);"></i>
-      <h2 style="margin-top:10px;">Projeto em desenvolvimento</h2>
-      <p style="color:#666;margin-top:6px;">Em breve, você poderá simular impostos no regime de Lucro Presumido.</p>
+    <div class="wrap">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <strong style="color:var(--accent)">Informe os dados abaixo</strong>
+        <span style="font-size:12px;color:#666">Preencha e clique em "Calcular Impostos"</span>
+      </div>
+
+      <div class="grid">
+        <!-- CARD ESQUERDA -->
+        <div class="card">
+          <div class="label"><i data-lucide="dollar-sign"></i> Valor da NFS-e</div>
+          <input id="valor_nfse" class="currency" placeholder="R$ —">
+
+          <div class="label" style="margin-top:6px"><i data-lucide="bar-chart"></i> Faturamento Mensal</div>
+          <input id="faturamento_mensal" class="currency" placeholder="R$ —">
+        </div>
+
+        <!-- CARD DIREITA -->
+        <div class="card content-right">
+          <div class="label"><i data-lucide="globe"></i> Natureza da Operação</div>
+          <select id="natureza_exportacao">
+            <option value="">-- selecione --</option>
+            <option value="1">Operação Normal</option>
+            <option value="2">Exportação de Serviços</option>
+          </select>
+
+          <div id="iss-container">
+            <div class="label" style="margin-top:8px"><i data-lucide="percent"></i> Alíquota do ISS</div>
+            <div class="percent-wrapper">
+              <input id="aliquota_iss" type="number" placeholder="2,00 a 5,00" min="2" max="5" step="0.01">
+            </div>
+          </div>
+
+          <div class="action-right">
+            <button id="btnCalcular"><i data-lucide="check-circle"></i> Calcular Impostos</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="errors" id="errors" aria-live="polite"></div>
+      <div id="resultArea" class="result-wrapper"></div>
     </div>
   </main>
 
   <footer>
-    Simulador LP • v1.0 • Desenvolvido por Edinaldo P.S.
+    Lucro Presumido • v1.3 • Desenvolvido por Edinaldo P.S.
   </footer>
-  <script>lucide.createIcons();</script>
+
+  <script>
+    lucide.createIcons();
+
+    // ====== INPUT FORMATADO ======
+    function attachCurrencyBehavior(inp) {
+      inp.addEventListener('input', () => {
+        let val = inp.value.replace(/[^\d]/g, '');
+        if (val === '') { inp.dataset.value = ''; inp.value = ''; return; }
+        let num = parseFloat(val) / 100;
+        inp.dataset.value = num;
+        inp.value = num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      });
+      inp.addEventListener('focus', () => { if (!inp.dataset.value) inp.value = ''; });
+      inp.getNumericValue = () => inp.dataset.value ? parseFloat(inp.dataset.value) : null;
+    }
+
+    const valorNF = document.getElementById('valor_nfse');
+    const faturamento = document.getElementById('faturamento_mensal');
+    attachCurrencyBehavior(valorNF);
+    attachCurrencyBehavior(faturamento);
+
+    const naturezaSelect = document.getElementById('natureza_exportacao');
+    const issContainer = document.getElementById('iss-container');
+    const aliquotaIssInput = document.getElementById('aliquota_iss');
+    const inputs = [valorNF, faturamento, naturezaSelect, aliquotaIssInput];
+
+    // ====== Mostrar ou ocultar campo ISS ======
+    naturezaSelect.addEventListener('change', () => {
+      if (naturezaSelect.value === '1') {
+        issContainer.style.display = 'block';
+      } else {
+        issContainer.style.display = 'none';
+        aliquotaIssInput.value = '';
+        aliquotaIssInput.classList.remove('campo-erro');
+      }
+    });
+
+    // ====== Travar valores ISS entre 2 e 5 ======
+    aliquotaIssInput.addEventListener('input', () => {
+      let val = parseFloat(aliquotaIssInput.value);
+      if (isNaN(val)) return;
+      if (val < 2) aliquotaIssInput.value = 2.00;
+      if (val > 5) aliquotaIssInput.value = 5.00;
+    });
+
+    // ====== Função para marcar erros ======
+    function marcarErro(input, condicao) {
+      if (condicao) input.classList.add('campo-erro');
+      else input.classList.remove('campo-erro');
+    }
+
+    // ====== BOTÃO CALCULAR ======
+    document.getElementById('btnCalcular').addEventListener('click', async () => {
+      const valor_nfse = valorNF.getNumericValue();
+      const faturamento_mensal = faturamento.getNumericValue();
+      const natureza_exportacao = parseInt(naturezaSelect.value || 0);
+      const aliquota_iss_percentual = parseFloat(aliquotaIssInput.value || 0);
+
+      const errors = document.getElementById('errors');
+      const resultArea = document.getElementById('resultArea');
+      errors.textContent = '';
+      resultArea.innerHTML = '';
+
+      // ====== validações ======
+      marcarErro(valorNF, !valor_nfse);
+      marcarErro(faturamento, !faturamento_mensal);
+      marcarErro(naturezaSelect, !natureza_exportacao);
+      marcarErro(
+        aliquotaIssInput,
+        natureza_exportacao === 1 && (!aliquota_iss_percentual || aliquota_iss_percentual < 2 || aliquota_iss_percentual > 5)
+      );
+
+      if (
+        !valor_nfse ||
+        !faturamento_mensal ||
+        !natureza_exportacao ||
+        (natureza_exportacao === 1 && (!aliquota_iss_percentual || aliquota_iss_percentual < 2 || aliquota_iss_percentual > 5))
+      ) {
+        errors.textContent = 'Preencha corretamente todos os campos obrigatórios.';
+        return;
+      }
+
+      const data = {
+        valor_nfse,
+        faturamento_mensal,
+        natureza_exportacao,
+        aliquota_iss_percentual
+      };
+
+      try {
+        const resp = await fetch('/calcular_lp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const json = await resp.json();
+
+        if (json.erro) {
+          errors.textContent = 'Erro no cálculo: ' + json.erro;
+          return;
+        }
+
+        let html = '<div class="card" style="margin-top:16px;"><strong style="color:var(--accent)">Resultado do Cálculo</strong><br><br>';
+        for (const [k, v] of Object.entries(json)) {
+          html += `<div style="margin-bottom:4px;"><strong>${k}:</strong> R$ ${v.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>`;
+        }
+        html += '</div>';
+        resultArea.innerHTML = html;
+
+      } catch (err) {
+        errors.textContent = 'Erro ao conectar com o servidor: ' + err.message;
+      }
+    });
+  </script>
 </body>
 </html>
