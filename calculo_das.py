@@ -34,23 +34,23 @@ reparticao_simples_nacional = {
         {'faixa': 3, 'rbt12_max': 720000.00, 'IRPJ': 5.50, 'CSLL': 3.50, 'COFINS': 12.74, 'PIS/Pasep': 2.76, 'CPP': 42.00, 'ICMS': 33.50},
         {'faixa': 4, 'rbt12_max': 1800000.00, 'IRPJ': 5.50, 'CSLL': 3.50, 'COFINS': 12.74, 'PIS/Pasep': 2.76, 'CPP': 42.00, 'ICMS': 33.50},
         {'faixa': 5, 'rbt12_max': 3600000.00, 'IRPJ': 13.50, 'CSLL': 10.00, 'COFINS': 28.27, 'PIS/Pasep': 6.13, 'CPP': 42.10, 'ICMS': 0.00},
-        {'faixa': 6, 'rbt12_max': 4800000.00, 'IRPJ': 13.50, 'CSLL': 10.00, 'COFINS': 28.27, 'PIS/Pasep': 6.13, 'CPP': 42.10, 'ICMS': 0.00},
+        {'faixa': 6, 'rbt12_max': 4800000.00, 'IRPJ': 13.50, 'CSLL': 10.00, 'COFINS': 28.27, 'PIS/Pasep': 6.13, 'CPP': 42.10, 'ICMS': 0.00}
     ],
     "Anexo II": [
         {'faixa': 1, 'rbt12_max': 180000.00, 'IRPJ': 5.50, 'CSLL': 3.50, 'COFINS': 12.74, 'PIS/Pasep': 2.76, 'CPP': 37.50, 'IPI': 38.00},
         {'faixa': 2, 'rbt12_max': 360000.00, 'IRPJ': 5.50, 'CSLL': 3.50, 'COFINS': 12.74, 'PIS/Pasep': 2.76, 'CPP': 37.50, 'IPI': 38.00},
-        {'faixa': 3, 'rbt12_max': 720000.00, 'IRPJ': 5.50, 'CSLL': 3.50, 'COFINS': 12.74, 'PIS/Pasep': 2.76, 'CPP': 38.00, 'IPI': 37.50},
-        {'faixa': 4, 'rbt12_max': 1800000.00, 'IRPJ': 5.50, 'CSLL': 3.50, 'COFINS': 12.74, 'PIS/Pasep': 2.76, 'CPP': 38.00, 'IPI': 37.50},
+        {'faixa': 3, 'rbt12_max': 720000.00, 'IRPJ': 5.50, 'CSLL': 3.50, 'COFINS': 13.57, 'PIS/Pasep': 2.93, 'CPP': 37.00, 'IPI': 37.50},
+        {'faixa': 4, 'rbt12_max': 1800000.00, 'IRPJ': 5.50, 'CSLL': 3.50, 'COFINS': 13.57, 'PIS/Pasep': 2.93, 'CPP': 37.00, 'IPI': 37.50},
         {'faixa': 5, 'rbt12_max': 3600000.00, 'IRPJ': 13.50, 'CSLL': 10.00, 'COFINS': 28.27, 'PIS/Pasep': 6.13, 'CPP': 42.10, 'IPI': 0.00},
-        {'faixa': 6, 'rbt12_max': 4800000.00, 'IRPJ': 13.50, 'CSLL': 10.00, 'COFINS': 28.27, 'PIS/Pasep': 6.13, 'CPP': 42.10, 'IPI': 0.00},
+        {'faixa': 6, 'rbt12_max': 4800000.00, 'IRPJ': 13.50, 'CSLL': 10.00, 'COFINS': 28.27, 'PIS/Pasep': 6.13, 'CPP': 42.10, 'IPI': 0.00}
     ],
     "Anexo III": [
         {'faixa': 1, 'rbt12_max': 180000.00, 'IRPJ': 4.00, 'CSLL': 3.50, 'COFINS': 12.82, 'PIS/Pasep': 2.78, 'CPP': 43.40, 'ISS': 33.50},
-        {'faixa': 2, 'rbt12_max': 360000.00, 'IRPJ': 4.00, 'CSLL': 3.50, 'COFINS': 12.82, 'PIS/Pasep': 2.78, 'CPP': 43.40, 'ISS': 33.50},
-        {'faixa': 3, 'rbt12_max': 720000.00, 'IRPJ': 4.00, 'CSLL': 3.50, 'COFINS': 13.29, 'PIS/Pasep': 2.89, 'CPP': 40.00, 'ISS': 36.32},
-        {'faixa': 4, 'rbt12_max': 1800000.00, 'IRPJ': 3.50, 'CSLL': 3.50, 'COFINS': 14.14, 'PIS/Pasep': 3.06, 'CPP': 35.50, 'ISS': 40.30},
-        {'faixa': 5, 'rbt12_max': 3600000.00, 'IRPJ': 15.00, 'CSLL': 9.00, 'COFINS': 20.44, 'PIS/Pasep': 4.46, 'CPP': 21.10, 'ISS': 30.00},
-        {'faixa': 6, 'rbt12_max': 4800000.00, 'IRPJ': 16.00, 'CSLL': 10.00, 'COFINS': 21.99, 'PIS/Pasep': 4.79, 'CPP': 12.22, 'ISS': 35.00},
+        {'faixa': 2, 'rbt12_max': 360000.00, 'IRPJ': 4.00, 'CSLL': 3.50, 'COFINS': 14.05, 'PIS/Pasep': 3.05, 'CPP': 43.40, 'ISS': 32.00},
+        {'faixa': 3, 'rbt12_max': 720000.00, 'IRPJ': 4.00, 'CSLL': 3.50, 'COFINS': 13.64, 'PIS/Pasep': 2.96, 'CPP': 43.40, 'ISS': 32.50},
+        {'faixa': 4, 'rbt12_max': 1800000.00, 'IRPJ': 4.00, 'CSLL': 3.50, 'COFINS': 13.64, 'PIS/Pasep': 2.96, 'CPP': 43.40, 'ISS': 32.50},
+        {'faixa': 5, 'rbt12_max': 3600000.00, 'IRPJ': 4.00, 'CSLL': 3.50, 'COFINS': 12.82, 'PIS/Pasep': 2.78, 'CPP': 43.40, 'ISS': 33.50},
+        {'faixa': 6, 'rbt12_max': 4800000.00, 'IRPJ': 35.00, 'CSLL': 15.00, 'COFINS': 16.03, 'PIS/Pasep': 3.47, 'CPP': 30.50, 'ISS': 0.00}
     ],
     "Anexo IV": [
         {'faixa': 1, 'rbt12_max': 180000.00, 'IRPJ': 18.80, 'CSLL': 15.20, 'COFINS': 20.45, 'PIS/Pasep': 4.45, 'ISS': 41.10},
@@ -58,7 +58,7 @@ reparticao_simples_nacional = {
         {'faixa': 3, 'rbt12_max': 720000.00, 'IRPJ': 20.80, 'CSLL': 15.20, 'COFINS': 21.45, 'PIS/Pasep': 4.65, 'ISS': 37.90},
         {'faixa': 4, 'rbt12_max': 1800000.00, 'IRPJ': 17.80, 'CSLL': 19.20, 'COFINS': 20.45, 'PIS/Pasep': 4.45, 'ISS': 38.10},
         {'faixa': 5, 'rbt12_max': 3600000.00, 'IRPJ': 18.80, 'CSLL': 19.20, 'COFINS': 20.45, 'PIS/Pasep': 4.45, 'ISS': 37.10},
-        {'faixa': 6, 'rbt12_max': 4800000.00, 'IRPJ': 23.30, 'CSLL': 11.20, 'COFINS': 25.45, 'PIS/Pasep': 5.55, 'ISS': 34.50},
+        {'faixa': 6, 'rbt12_max': 4800000.00, 'IRPJ': 23.30, 'CSLL': 11.20, 'COFINS': 25.45, 'PIS/Pasep': 5.55, 'ISS': 34.50}
     ],
     "Anexo V": [
         {'faixa': 1, 'rbt12_max': 180000.00, 'IRPJ': 25.00, 'CSLL': 15.00, 'COFINS': 14.10, 'PIS/Pasep': 3.05, 'CPP': 28.85, 'ISS': 14.00},
@@ -67,7 +67,7 @@ reparticao_simples_nacional = {
         {'faixa': 4, 'rbt12_max': 1800000.00, 'IRPJ': 21.00, 'CSLL': 15.00, 'COFINS': 15.74, 'PIS/Pasep': 3.41, 'CPP': 23.85, 'ISS': 21.00},
         {'faixa': 5, 'rbt12_max': 3600000.00, 'IRPJ': 23.00, 'CSLL': 12.50, 'COFINS': 16.56, 'PIS/Pasep': 3.59, 'CPP': 23.35, 'ISS': 21.00},
         {'faixa': 6, 'rbt12_max': 4800000.00, 'IRPJ': 30.50, 'CSLL': 13.50, 'COFINS': 14.14, 'PIS/Pasep': 3.06, 'CPP': 15.80, 'ISS': 23.00}
-    ]
+    ],
 }
 
 

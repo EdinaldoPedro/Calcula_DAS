@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 from calculo_das import calcular_simples_nacional_from_input  # seu script de cálculo
 from calcular_darf_pro_labore import calcular_darf_pro_labore  # importe seu novo script
+from simulador_lp import calcula_imposto
 
 app = Flask(__name__, template_folder="templates")  # ajuste se seus templates estiverem em 'templates/'
 
@@ -47,6 +48,23 @@ def calcular_darf():
         return jsonify(resultado)
     except Exception as e:
         print("❌ Erro no cálculo DARF:", e)
+        return jsonify({"erro": str(e)}), 400
+    
+@app.route("/calcular_lp", methods=["POST"])
+def calcular_lp():
+    try:
+        data = request.get_json(force=True)
+        print("\n📦 JSON recebido para LP:", data)
+
+        valor_nfse = float(data.get("valor_nfse", 0))
+        faturamento_mensal = float(data.get("faturamento_mensal", 0))
+        natureza_exportacao = int(data.get("natureza_exportacao", 1))
+        aliquota_iss = float(data.get("aliquota_iss_percentual", 0))
+
+        resultado = calcula_imposto(valor_nfse, faturamento_mensal, natureza_exportacao, aliquota_iss)
+        return jsonify(resultado)
+    except Exception as e:
+        print("❌ Erro no cálculo LP:", e)
         return jsonify({"erro": str(e)}), 400
 
 if __name__ == "__main__":

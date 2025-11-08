@@ -352,3 +352,85 @@ footer {
 #prolaboreCardContent div {
   font-size: 13px;
 }
+
+/* ====== CAMPO COM % ====== */
+.percent-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.percent-wrapper input {
+  width: 100%;
+  font-family: 'LT Energy', sans-serif;
+  font-size: 14px;
+  text-align: right;
+  padding: 8px 32px 8px 10px; /* mesmo padding dos outros + espaço p/ símbolo % */
+  border: 1px solid #D8DAE0;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: var(--input-shadow, 0 1px 2px rgba(0,0,0,0.05));
+  transition: all 0.2s ease;
+  height: auto; /* deixa igual aos outros campos */
+}
+
+.percent-wrapper input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(46, 91, 255, 0.2);
+}
+
+.percent-wrapper::after {
+  content: "%";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #555;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+#iss-container {
+  display: none;
+}
+
+#iss-container {
+  display: none;
+}
+
+.percent-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.percent-wrapper input {
+  width: 100%;
+  height: 42px; /* igual ao select */
+  font-family: 'LT Energy', sans-serif;
+  font-size: 14px;
+  text-align: right;
+  padding: 0 32px 0 10px; /* mesmo padding, espaço à direita p/ o símbolo */
+  border: 1px solid #D8DAE0;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: var(--input-shadow, 0 1px 2px rgba(0,0,0,0.05));
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.percent-wrapper input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(46, 91, 255, 0.2);
+}
+
+.percent-wrapper::after {
+  content: "%";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #555;
+  font-size: 14px;
+  pointer-events: none;
+}
