@@ -62,8 +62,8 @@
     </div>
   </main>
 
-  <footer style="position:fixed;bottom:0;left:0;right:0;height:48px;background:#f1f3f6;border-top:1px solid #e6eef5;display:flex;align-items:center;justify-content:center;font-size:13px">
-    Simples Nacional • v2.2 • Desenvolvido por Edinaldo P.S.
+  <footer>
+    Simples Nacional • v1.0 • Desenvolvido por Edinaldo P.S.
   </footer>
 
 <script>
@@ -378,44 +378,46 @@
   }
 
   // ================ FUNÇÃO MODIFICADA ================
+// ================ FUNÇÃO MODIFICADA ================
   function cardBase(titulo, resultado, idSuffix) {
-    const totalDAS = resultado.valor_das_a_pagar ?? 0; // Usar o número puro para cálculos
+    // totalDAS é usado para calcular a %
+    const totalDAS = resultado.valor_das_a_pagar ?? 0;
     const valorDAS = totalDAS.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
     const faixa = resultado.faixa ?? '—';
     const aliquota = (resultado.aliquota_efetiva_percent ?? 0).toFixed(4);
-    const r = resultado.rateio || {};
+    
+    // Objeto de rateio retornado pelo Python (contém IRPJ, CSLL, PIS, COFINS, CPP e UM dos: ICMS, IPI ou ISS)
+    const r = resultado.rateio || {}; 
 
     // Precisamos saber se é exportação para replicar a lógica de "Isento"
     const isExportacao = document.getElementById('exportacao').value === 'Sim';
 
-    const keys = [
-        { label: 'IRPJ', key: 'IRPJ' },
-        { label: 'CSLL', key: 'CSLL' },
-        { label: 'COFINS', key: 'COFINS' },
-        { label: 'PIS/Pasep', key: 'PIS/Pasep' }, // A chave no JSON é "PIS/Pasep"
-        { label: 'CPP', key: 'CPP' },
-        { label: 'ISS', key: 'ISS' }
-    ];
+    // Lista de impostos que recebem isenção na Exportação de Serviços
+    const isentoKeys = ['COFINS', 'PIS/Pasep', 'ISS'];
+    let rateioLinesHTML = '';
+    
+    // Itera diretamente sobre as chaves (nomes dos impostos) do objeto 'rateio' retornado.
+    // Isso garante que a chave correta (ICMS, IPI ou ISS) seja usada.
+    for (const impostoKey in r) {
+        if (r.hasOwnProperty(impostoKey)) {
+            const valorTributo = r[impostoKey];
+            
+            // Verifica a condição de "Isento" (só para os impostos de serviço PIS/COFINS/ISS, quando isExportacao é true)
+            const isIsento = isExportacao && isentoKeys.includes(impostoKey);
+            
+            if (isIsento) {
+                // Exibe "Isento"
+                rateioLinesHTML += `<div><strong>${impostoKey}:</strong> Isento</div>`;
+            } else {
+                // Se não for "Isento", calcula e mostra os valores R$ e %
+                const percent = (totalDAS > 0) ? (valorTributo / totalDAS) * 100 : 0;
+                const valorStr = valorTributo.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                const percentStr = percent.toFixed(2); // ex: 36.31%
 
-    const rateioLinesHTML = keys.map(item => {
-        const valorTributo = r[item.key] ?? 0;
-        
-        // Verifica a condição de "Isento" baseada nos seus logs (Exportação "Sim" zera PIS, COFINS, ISS)
-        const isIsento = isExportacao && (item.key === 'COFINS' || item.key === 'PIS/Pasep' || item.key === 'ISS');
-
-        if (isIsento) {
-            // Exibe "Isento" como no seu log
-            return `<div><strong>${item.label}:</strong> Isento</div>`;
+                rateioLinesHTML += `<div><strong>${impostoKey}:</strong> R$ ${valorStr} (${percentStr}%)</div>`;
+            }
         }
-        
-        // Se não for "Isento", calcula e mostra os valores R$ e %
-        const percent = (totalDAS > 0) ? (valorTributo / totalDAS) * 100 : 0;
-        const valorStr = valorTributo.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-        const percentStr = percent.toFixed(2); // ex: 36.31%
-
-        return `<div><strong>${item.label}:</strong> R$ ${valorStr} (${percentStr}%)</div>`;
-    }).join('');
-
+    }
 
     return `
     <div class="card" style="flex:1; margin-top:12px;">
@@ -433,6 +435,7 @@
     </div>
   `;
   }
+  // ================ FIM DA FUNÇÃO MODIFICADA ================
   // ================ FIM DA FUNÇÃO MODIFICADA ================
 
   function rateioBoxHTML(resultado, idSuffix) {

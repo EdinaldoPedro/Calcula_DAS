@@ -434,3 +434,66 @@ footer {
   font-size: 14px;
   pointer-events: none;
 }
+
+.currency-wrapper {
+  position: relative;
+}
+
+.currency-symbol {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.currency-input {
+  width: 90%;
+  padding-left: 42px !important;
+  height: 25px;
+  border: 1px solid #D8DAE0;
+  border-radius: 8px;
+  font-family: 'LT Energy', sans-serif;
+  font-size: 14px;
+}
+
+/* --- Estilos para o layout de colunas (Grid) --- */
+
+.grid-2-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Duas colunas de largura igual */
+    gap: 15px; /* Espaço entre as colunas */
+    margin-bottom: 15px;
+}
+
+.grid-3-cols {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr; /* Ajuste as proporções das colunas (Desc, Tipo, Valor) */
+    gap: 10px;
+}
+
+/* Garante que o input de descrição ocupe as 3 colunas e a seleção/valor fiquem lado a lado */
+.grid-3-cols input[id^='desc'] {
+    grid-column: 1 / span 3;
+    margin-bottom: -5px; /* Ajusta o espaço abaixo da descrição */
+}
+
+/* Estilo para garantir que o contêiner do custo dinâmico não tenha padding excessivo */
+.custo-item {
+    display: block !important;
+    margin-top: 8px;
+    padding: 10px; /* Reduz o padding interno do custo */
+}
+
+/* Media Query para responsividade (opcional, mas recomendado) */
+@media (max-width: 600px) {
+    .grid-2-cols, .grid-3-cols {
+        grid-template-columns: 1fr; /* Em telas menores, volta para uma coluna */
+    }
+    /* No grid de 3 colunas, força a seleção e o valor a ocuparem a linha toda em telas pequenas */
+    .grid-3-cols select, .grid-3-cols #wrapper_val {
+        grid-column: auto !important;
+    }
+}
