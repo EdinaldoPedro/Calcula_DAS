@@ -6,20 +6,284 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2">
   <script src="https://unpkg.com/lucide@latest"></script>
-</head>
+  
+  </head>
 <body>
   <header><h1><i data-lucide="file-input"></i> Como Compor o Valor Bruto na NFS-e</h1></header>
-  <main>
-    <div class="wrap" style="text-align:center;padding:60px 20px;">
-      <i data-lucide="layers"></i>
-      <h2 style="margin-top:10px;">Projeto em desenvolvimento</h2>
-      <p style="color:#666;margin-top:6px;">Aqui você aprenderá a embutir custos e impostos no valor bruto de notas de serviço.</p>
-    </div>
-  </main>
 
-  <footer>
-    Simulador NFS-e • v1.0 • Desenvolvido por Edinaldo P.S.
-  </footer>
-  <script>lucide.createIcons();</script>
-</body>
-</html>
+<main>
+  <div class="wrap">
+    <h2>Compor Valor Bruto da NFS-e</h2>
+
+        <div class="grid-2-cols">
+          <div class="card">
+            <label class="label">Valor Líquido desejado (R$)</label>
+            <div class="currency-wrapper">
+              <input id="valor_liquido" type="text" class="currency-input currency" placeholder="R$ —">
+            </div>
+            <div id="erro_liquido" class="error-msg" style="display:none;">Preencha este campo</div>
+          </div>
+
+          <div class="card">
+            <label class="label">Imposto Principal (%)</label>
+            <div class="percent-wrapper">
+              <input id="imposto_principal" type="number" step="0.01" placeholder="0,00">
+            </div>
+            <div id="erro_imposto" class="error-msg" style="display:none;">Preencha este campo</div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <label class="label">Custos adicionais</label>
+          <div id="custos_area"></div>
+          <button onclick="adicionarCusto()">Adicionar custo</button>
+        </div>
+
+    <div class="action-right">
+      <button onclick="calcular()">Calcular Valor Bruto</button>
+    </div>
+
+    <div id="resultado" class="card" style="margin-top:20px; display:none;"></div>
+  </div>
+</main>
+
+<script>
+// ====================================================================
+// FUNÇÕES DE MÁSCARA E DESMASCARAMENTO COPIADAS DIRETAMENTE DE simulador_das.html
+// ====================================================================
+
+function parseToNumber(s) {
+    if (s === null || s === undefined) return null;
+    let t = String(s).trim();
+    if (!t) return null;
+    t = t.replace(/\s/g, '').replace(/R\$/gi, '');
+    const comma = t.indexOf(',');
+    const dot = t.indexOf('.');
+    // A LÓGICA ABAIXO É CRUCIAL PARA CONVERTER O FORMATO BRASILEIRO
+    if (dot !== -1 && comma !== -1) t = t.replace(/\./g, '').replace(',', '.');
+    else if (comma !== -1 && dot === -1) t = t.replace(',', '.');
+    t = t.replace(/[^0-9\.\-]/g, '');
+    const n = Number(t);
+    return isNaN(n) ? null : n;
+}
+
+function attachCurrencyBehaviorSmart(inp) {
+    // A LÓGICA DE INPUT É O QUE FORÇA A MÁSCARA REVERSA (DIVIDIR POR 100)
+    inp.addEventListener('input', () => {
+        let val = inp.value.replace(/[^\d]/g, ''); // Remove tudo que não for dígito
+        if (val === '') { inp.dataset.value = ''; inp.value = ''; return; }
+        let num = parseFloat(val) / 100; // Divide por 100 para simular centavos
+        inp.dataset.value = num;
+        inp.value = num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    });
+    
+    // As outras funções garantem o comportamento de foco e colagem
+    inp.addEventListener('focus', () => {
+        // Se não tiver valor, limpa o campo ao focar para começar a digitar
+        if (!inp.dataset.value) inp.value = ''; 
+        // Se tiver valor, mantém o valor formatado ao focar (opcional, mas mantido da fonte)
+    });
+    inp.addEventListener('paste', (ev) => {
+        ev.preventDefault();
+        const text = (ev.clipboardData || window.clipboardData).getData('text');
+        const num = parseToNumber(text);
+        if (num !== null) {
+            inp.dataset.value = num;
+            inp.value = num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+    });
+    
+    // Métodos para obtenção e definição de valor numérico
+    inp.getNumericValue = () => inp.dataset.value ? parseFloat(inp.dataset.value) : null;
+    inp.setNumericValue = (num) => {
+        inp.dataset.value = num;
+        inp.value = num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    };
+}
+// ====================================================================
+
+
+let custos = [];
+
+function marcarErro(campo, msg) {
+    campo.classList.add("campo-erro");
+    msg.style.display = "block";
+}
+function limparErro(campo, msg) {
+    campo.classList.remove("campo-erro");
+    msg.style.display = "none";
+}
+
+/* --- Adicionar blocos de custos (LÓGICA DINÂMICA) --- */
+function adicionarCusto() {
+  const id = Date.now();
+
+  const custoHtml = `
+      <div class="card custo-item" id="custo_card_${id}">
+          <div class="grid-3-cols">
+              <input id="desc_${id}" placeholder="Descrição do Custo" style="grid-column: 1 / span 3; box-sizing: border-box;">
+
+              <select id="tipo_${id}" onchange="toggleValorInput('${id}')" style="grid-column: 1 / 2;">
+                  <option value="">-- Tipo --</option>
+                  <option value="%">Percentual (%)</option>
+                  <option value="R$">Valor Fixo (R$)</option>
+              </select>
+              
+              <div id="wrapper_val_${id}" style="grid-column: 2 / span 2;"></div>
+          </div>
+
+          <button type="button" onclick="document.getElementById('custo_card_${id}').remove()" style="background: #e74c3c; box-shadow: none; font-size: 13px; padding: 6px 12px; margin-top: 8px;">Remover Custo</button>
+      </div>
+    `;
+    document.getElementById("custos_area").insertAdjacentHTML('beforeend', custoHtml);
+}
+
+/* --- Mostra/oculta o campo de valor e o formata (APLICA MÁSCARA CUSTOMIZADA) --- */
+function toggleValorInput(id) {
+    const tipoSelect = document.getElementById(`tipo_${id}`);
+    const valorWrapper = document.getElementById(`wrapper_val_${id}`);
+    const tipo = tipoSelect.value;
+
+    if (tipo === "R$") {
+        valorWrapper.innerHTML = `
+            <div class="currency-wrapper">
+                <input id="val_${id}" type="text" class="currency-input currency" placeholder="R$ —">
+            </div>
+        `;
+        valorWrapper.style.display = "block";
+        
+        // CHAMA A FUNÇÃO CUSTOMIZADA
+        attachCurrencyBehaviorSmart(document.getElementById(`val_${id}`)); 
+
+    } else if (tipo === "%") {
+        valorWrapper.innerHTML = `
+            <div class="percent-wrapper">
+                <input id="val_${id}" type="number" step="0.01" placeholder="0,00">
+            </div>
+        `;
+        valorWrapper.style.display = "block";
+    } else {
+        valorWrapper.innerHTML = "";
+        valorWrapper.style.display = "none";
+    }
+}
+
+/* --- Função principal de cálculo (USANDO getNumericValue) --- */
+async function calcular() {
+  const liquidoInput = document.getElementById("valor_liquido");
+  const impostoInput = document.getElementById("imposto_principal");
+
+  const erroLiq = document.getElementById("erro_liquido");
+  const erroImp = document.getElementById("erro_imposto");
+
+  limparErro(liquidoInput, erroLiq);
+  limparErro(impostoInput, erroImp);
+
+  // MUDANÇA CRUCIAL: USAR getNumericValue()
+  const valor_liquido = liquidoInput.getNumericValue();
+  const imposto_principal = parseFloat(impostoInput.value);
+
+  let erro = false;
+
+  if (valor_liquido === null || valor_liquido <= 0) {
+      marcarErro(liquidoInput, erroLiq);
+      erro = true;
+  }
+
+  if (!imposto_principal) {
+      marcarErro(impostoInput, erroImp);
+      erro = true;
+  }
+
+  if (erro) return;
+
+  // montar lista de custos
+  const inputs = document.querySelectorAll("#custos_area .card");
+  custos = [];
+
+  Array.from(inputs).forEach(div => {
+      const descInput = div.querySelector("input[id^='desc']");
+      const tipoSelect = div.querySelector("select[id^='tipo']");
+      const valInput = div.querySelector("input[id^='val']");
+
+      if (descInput && tipoSelect) {
+          const desc = descInput.value;
+          const tipo = tipoSelect.value;
+          
+          if (valInput) { 
+              let val;
+              
+              if (tipo === "R$") {
+                  // MUDANÇA CRUCIAL: USAR getNumericValue()
+                  val = valInput.getNumericValue();
+              } else {
+                  val = parseFloat(valInput.value);
+              }
+
+              if (desc && val !== null && !isNaN(val)) {
+                  
+                  // APLICA O LIMITE DE 99.99%
+                  if (tipo === "%" && val >= 100) {
+                      val = 99.99; 
+                  }
+                  
+                  custos.push({ descricao: desc, valor: val, tipo });
+              }
+          }
+      }
+  });
+
+
+  const payload = { valor_liquido, imposto_principal, custos };
+
+  const resp = await fetch("/calcular_valor_bruto", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+// ... Código anterior ...
+
+  const dados = await resp.json();
+
+  if (resp.status !== 200) {
+      // ... Código de erro ...
+      return;
+  }
+  
+  // --- BLOCO DE CÓDIGO CORRIGIDO ABAIXO ---
+  
+  // Função auxiliar para formatar números para o padrão BRL (123.456,78)
+  const formatarBRL = (valor) => {
+      // Garante 2 casas decimais e usa o localizador pt-BR para separadores
+      return parseFloat(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  let html = `
+    <h3>Resultado</h3>
+    <p><strong>Valor Bruto: R$ ${formatarBRL(dados.valor_bruto)}</strong></p>
+    <p>Líquido Final: R$ ${formatarBRL(dados.liquido_final)}</p>
+    <h4>Detalhamento:</h4>
+  `;
+
+  dados.detalhes.forEach(d => {
+    html += `<div>${d.descricao}: R$ ${formatarBRL(d.valor)}</div>`;
+  });
+
+  document.getElementById("resultado").style.display = "block";
+  document.getElementById("resultado").innerHTML = html;
+}
+// ...
+
+// Inicializa a máscara no campo estático ao carregar a página
+document.addEventListener('DOMContentLoaded', () => {
+    const liquidoInput = document.getElementById('valor_liquido');
+    attachCurrencyBehaviorSmart(liquidoInput);
+});
+</script>
+
+<footer>
+  Simulador NFS-e • v1.0 • Desenvolvido por Edinaldo P.S.
+</footer>
+
+<script>lucide.createIcons();</script>
