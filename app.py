@@ -3,6 +3,7 @@ from calculo_das import calcular_simples_nacional_from_input  # seu script de c�
 from calcular_darf_pro_labore import calcular_darf_pro_labore  # importe seu novo script
 from simulador_lp import calcula_imposto
 from valor_bruto import calcular_valor_bruto_from_input
+from calculo_rescisao import processar_rescisao
 
 app = Flask(__name__, template_folder="templates")  # ajuste se seus templates estiverem em 'templates/'
 
@@ -79,6 +80,22 @@ def calcular_valor_bruto_api():
     except Exception as e:
         print("❌ Erro no cálculo de Valor Bruto:", e)
         return jsonify({"erro": str(e)}), 400
+
+@app.route('/calcular_rescisao', methods=['POST'])
+def api_calcular_rescisao():
+    data = request.get_json()
+    
+    try:
+        # Chama a função do arquivo calculo_rescisao.py
+        # Ela já devolve o dicionário pronto (resumo, proventos, descontos, totais)
+        resultado = processar_rescisao(data)
+        
+        # Retorna como JSON para o JavaScript do navegador
+        return jsonify(resultado)
+        
+    except Exception as e:
+        # Se der erro (ex: data inválida), devolve mensagem de erro
+        return jsonify({"erro": f"Erro no servidor: {str(e)}"}), 400
 
 
 if __name__ == "__main__":
