@@ -78,21 +78,6 @@ def calcula_imposto(valor_nfse, faturamento_mensal, natureza_exportacao, aliquot
     return resultado
 
 
-    # Resultado formatado: cada item com (aliquota efetiva) : valor
-    resultado = {
-        f"COFINS ({cofins_pct:.2f}%)": cofins_valor,
-        f"CSLL ({csll_pct:.2f}%)": csll_valor,
-        f"IRPJ ({irpj_pct:.2f}%)": irpj_valor,
-        f"IRPJ Adicional ({irpj_ad_pct:.2f}%)": irpj_adicional_valor,
-        f"ISS ({iss_pct:.2f}%)": iss_valor,
-        f"PIS ({pis_pct:.2f}%)": pis_valor,
-        f"Total Tributos da Nota ({aliquota_total:.2f}%)": total_tributos
-    }
-
-
-    return resultado
-
-
 # ==============================
 # Execução direta via terminal
 # ==============================

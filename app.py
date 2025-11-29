@@ -7,6 +7,7 @@ from calculo_rescisao import processar_rescisao
 
 app = Flask(__name__, template_folder="templates")  # ajuste se seus templates estiverem em 'templates/'
 
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -26,6 +27,10 @@ def simulador_rescisao():
 @app.route("/simulador_nfse")
 def simulador_nfse():
     return render_template("simulador_nfse.html")
+
+@app.route("/simulador_holerite")
+def simulador_holerite():
+    return render_template("simulador_holerite.html")
 
 
 @app.route("/calcular_das", methods=["POST"])

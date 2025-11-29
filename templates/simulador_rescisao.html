@@ -259,43 +259,59 @@
     const resultArea = document.getElementById('resultArea');
     
     // Formatação BRL
-    const fmt = (v) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmt = (v) => {
+        // aceitar strings/nums e evitar erro
+        const num = Number(v) || 0;
+        return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
 
     // 1. Resumo em Texto
     let resumoHTML = '<ul style="margin:0; padding-left:20px; color:#555;">';
-    data.resumo_texto.forEach(line => resumoHTML += `<li>${line}</li>`);
+    // backend fornece "resumo" (array de linhas)
+    if (Array.isArray(data.resumo)) {
+        data.resumo.forEach(line => resumoHTML += `<li>${line}</li>`);
+    }
     resumoHTML += '</ul>';
 
     // 2. Tabela de Verbas (Estilo Holerite)
     let rowsHTML = '';
     
     // Proventos
-    for (const [desc, val] of Object.entries(data.proventos)) {
-        rowsHTML += `
-            <tr>
-                <td style="color:#2e7d32; font-weight:500;">${desc}</td>
-                <td style="text-align:right; color:#2e7d32;">R$ ${fmt(val)}</td>
-                <td></td>
-            </tr>
-        `;
-    }
-    // Descontos
-    for (const [desc, val] of Object.entries(data.descontos)) {
-        rowsHTML += `
-            <tr>
-                <td style="color:#c62828; font-weight:500;">${desc}</td>
-                <td></td>
-                <td style="text-align:right; color:#c62828;">R$ ${fmt(val)}</td>
-            </tr>
-        `;
+    if (data.proventos) {
+        Object.entries(data.proventos).forEach(([desc, val]) => {
+            rowsHTML += `
+                <tr>
+                    <td style="color:#2e7d32; font-weight:500;">${desc}</td>
+                    <td style="text-align:right; color:#2e7d32;">R$ ${fmt(val)}</td>
+                    <td></td>
+                </tr>
+            `;
+        });
     }
 
-    // Totais
+    // Descontos
+    if (data.descontos) {
+        Object.entries(data.descontos).forEach(([desc, val]) => {
+            rowsHTML += `
+                <tr>
+                    <td style="color:#c62828; font-weight:500;">${desc}</td>
+                    <td></td>
+                    <td style="text-align:right; color:#c62828;">R$ ${fmt(val)}</td>
+                </tr>
+            `;
+        });
+    }
+
+    // Totais (usar nomes exatos retornados pelo backend)
+    const totalProventos = data.totais?.total_proventos || 0;
+    const totalDescontos = data.totais?.total_descontos || 0;
+    const totalLiquido = data.totais?.total_liquido || 0;
+
     const totaisHTML = `
         <tr style="background:#f4f5fb; font-weight:bold;">
             <td>TOTAIS</td>
-            <td style="text-align:right;">R$ ${fmt(data.totais.bruto)}</td>
-            <td style="text-align:right;">R$ ${fmt(data.totais.descontos)}</td>
+            <td style="text-align:right;">R$ ${fmt(totalProventos)}</td>
+            <td style="text-align:right;">R$ ${fmt(totalDescontos)}</td>
         </tr>
     `;
 
@@ -324,7 +340,7 @@
         </table>
         <div style="padding:16px; background:var(--primary); color:#fff; display:flex; justify-content:space-between; align-items:center;">
             <span style="font-size:16px; font-weight:bold;">VALOR LÍQUIDO A RECEBER</span>
-            <span style="font-size:20px; font-weight:bold;">R$ ${fmt(data.totais.liquido)}</span>
+            <span style="font-size:20px; font-weight:bold;">R$ ${fmt(totalLiquido)}</span>
         </div>
       </div>
     `;
