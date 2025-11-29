@@ -32,6 +32,7 @@ def simulador_rescisao():
 def simulador_nfse():
     return render_template("simulador_nfse.html")
 
+
 @app.route("/simulador_holerite")
 def simulador_holerite():
     return render_template("simulador_holerite.html")
