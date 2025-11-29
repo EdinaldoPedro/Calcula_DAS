@@ -293,6 +293,10 @@
       // monta a UI dinâmica
       buildResultsUI(calc1, calc2);
 
+      // 👉 CHAMADA DO FEEDBACK
+      feedbackController("Simulador DAS");
+
+
       // Se houver cálculo alternativo e for retornado DARF (via chamada separada), já fazemos a chamada como antes
       if (calc2) {
         // solicitamos DARF para exibir na coluna do pró-labore (usando anexo 3)
@@ -585,6 +589,49 @@
     return { months, startDate };
   }
 </script>
+
+<script>
+  // URL do seu Apps Script
+  const APPS_SCRIPT_URL = "{{ apps_script_url }}";
+
+  function showFeedback(simuladorNome) {
+    const modal = document.getElementById('feedback-modal');
+    modal.style.display = "flex";
+
+    document.getElementById("fb-enviar").onclick = async () => {
+
+      const dados = {
+        simulador: simuladorNome,
+        nota: Number(document.getElementById("fb-nota").value),
+        comentario: document.getElementById("fb-coment").value,
+        usuario: ""
+      };
+
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify(dados)
+        });
+
+        alert("✨ Obrigado! Seu feedback foi enviado.");
+      } catch (e) {
+        alert("❌ Não foi possível enviar o feedback.");
+      }
+
+      modal.style.display = "none";
+    };
+  }
+
+</script>
+
+<script src="{{ url_for('static', filename='js/feedback.js') }}"></script>
+
+{% include 'feedback_modal.html' %}
+
 
 </body>
 </html>

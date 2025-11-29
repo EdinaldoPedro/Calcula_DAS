@@ -14,7 +14,11 @@ def index():
 
 @app.route("/simulador_das")
 def simulador_das():
-    return render_template("simulador_das.html")
+    return render_template(
+        "simulador_das.html",
+        apps_script_url="https://script.google.com/macros/s/AKfycbyNub2Vy0nonGQKDZLdaIxpu65tb_T5UCwSnzuqnCnnj5DChcva3xRJ1lHZ8H2qjvmd/exec",
+        simulador_nome="Simulador DAS"
+    )
 
 @app.route("/simulador_lp")
 def simulador_lp():
