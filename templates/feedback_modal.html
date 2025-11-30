@@ -1,0 +1,140 @@
+<!-- Modal de Feedback — Versão Oficial Recriada -->
+
+<div id="feedback-modal" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  backdrop-filter:blur(4px);
+  background:rgba(0,0,0,0.40);
+  z-index:9999;
+  align-items:center;
+  justify-content:center;
+  font-family: 'LT Energy', sans-serif;
+">
+
+  <div style="
+    background:#fff;
+    padding:26px;
+    border-radius:14px;
+    width:92%;
+    max-width:420px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.18);
+    animation: scaleIn .25s ease-out;
+  ">
+
+    <h2 style="
+      margin:0 0 10px 0;
+      color:#222;
+      font-size:20px;
+      text-align:center;
+    ">
+      😊 Gostou da experiência?
+    </h2>
+
+    <p style="
+      margin:0 0 18px 0;
+      color:#555;
+      font-size:14px;
+      text-align:center;
+    ">
+      Sua opinião nos ajuda a evoluir este simulador.
+    </p>
+
+    <!-- ⭐ Sistema de estrelas -->
+    <div id="star-container" style="
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      margin-bottom:20px;
+      cursor:pointer;
+    ">
+      <span class="star" data-value="1" style="font-size:30px; color:#ccc;">★</span>
+      <span class="star" data-value="2" style="font-size:30px; color:#ccc;">★</span>
+      <span class="star" data-value="3" style="font-size:30px; color:#ccc;">★</span>
+      <span class="star" data-value="4" style="font-size:30px; color:#ccc;">★</span>
+      <span class="star" data-value="5" style="font-size:30px; color:#ccc;">★</span>
+    </div>
+
+    <input type="hidden" id="fb-nota" value="5">
+
+    <!-- Comentário -->
+    <textarea
+      id="fb-coment"
+      rows="3"
+      placeholder="Conte rapidamente como podemos melhorar 😊"
+      style="
+        width:100%;
+        border:1px solid #ddd;
+        border-radius:10px;
+        padding:10px;
+        font-size:14px;
+        outline:none;
+        resize:none;
+        transition:.2s;
+      "
+      onfocus="this.style.borderColor='#4a7ae0'"
+    ></textarea>
+
+    <!-- Botões -->
+    <div style="display:flex; justify-content:space-between; margin-top:20px;">
+      
+      <button
+        onclick="document.getElementById('feedback-modal').style.display='none'"
+        style="
+          background:#eee;
+          border:none;
+          padding:10px 16px;
+          border-radius:8px;
+          font-size:14px;
+          cursor:pointer;
+        "
+      >
+        Fechar
+      </button>
+
+      <button
+        id="fb-enviar"
+        style="
+          background:#4a7ae0;
+          color:#fff;
+          border:none;
+          padding:10px 20px;
+          border-radius:8px;
+          font-size:14px;
+          cursor:pointer;
+          box-shadow:0 3px 8px rgba(0,0,0,0.15);
+        "
+      >
+        Enviar Avaliação
+      </button>
+
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes scaleIn {
+  from { transform: scale(0.90); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const stars = document.querySelectorAll("#star-container .star");
+  const notaInput = document.getElementById("fb-nota");
+
+  function highlight(n) {
+    stars.forEach(s => {
+      s.style.color = Number(s.dataset.value) <= n ? "#ffb400" : "#ccc";
+    });
+  }
+
+  stars.forEach(star => {
+    star.addEventListener("mouseover", () => highlight(star.dataset.value));
+    star.addEventListener("click", () => notaInput.value = star.dataset.value);
+  });
+
+  highlight(5); // valor inicial
+});
+</script>

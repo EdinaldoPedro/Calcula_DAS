@@ -2,24 +2,352 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-  <title>Simulador de Rescisão Trabalhista</title>
+  <title>Simulador de Rescisão</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=3">
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-  <header><h1><i data-lucide="briefcase"></i> Simulador de Rescisão Trabalhista</h1></header>
+  <header><h1><i data-lucide="briefcase"></i> Cálculo de Rescisão Trabalhista</h1></header>
   <main>
-    <div class="wrap" style="text-align:center;padding:60px 20px;">
-      <i data-lucide="construction" style="width:48px;height:48px;color:var(--accent);"></i>
-      <h2 style="margin-top:10px;">Projeto em desenvolvimento</h2>
-      <p style="color:#666;margin-top:6px;">Esta seção permitirá simular cálculos de rescisão de contrato de trabalho.</p>
+    <div class="wrap">
+      
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <strong style="color:var(--accent)">Informe os dados do contrato</strong>
+        <span style="font-size:12px;color:#666">Simulação baseada nas regras CLT 2025</span>
+      </div>
+
+      <div class="grid">
+        <div class="card" id="left-card">
+          <div class="label"><i data-lucide="file-question"></i> Motivo da Rescisão</div>
+          <select id="motivo">
+            <option value="1">1. Dispensa sem Justa Causa</option>
+            <option value="2">2. Pedido de Demissão</option>
+            <option value="3">3. Demissão por Justa Causa</option>
+            <option value="4">4. Acordo (Art. 484-A)</option>
+            <option value="5">5. Término de Contrato (Experiência)</option>
+            <option value="6">6. Quebra Contrato Emp. (Art. 479)</option>
+            <option value="7">7. Quebra Contrato Func. (Art. 480)</option>
+          </select>
+
+          <div class="grid-2-cols" style="margin-top:10px; margin-bottom:0;">
+            <div>
+              <div class="label"><i data-lucide="calendar-plus"></i> Admissão</div>
+              <input type="date" id="data_admissao" />
+            </div>
+            <div>
+              <div class="label"><i data-lucide="calendar-minus"></i> Saída</div>
+              <input type="date" id="data_demissao" />
+            </div>
+          </div>
+
+          <div id="area-aviso" style="margin-top:12px; padding:10px; background:#f0f4ff; border-radius:8px;">
+            <div id="opt-aviso-indenizado" style="display:block;">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;">
+                <input type="checkbox" id="chk_aviso_indenizado">
+                <span>Aviso Prévio foi <strong>Indenizado</strong> (Pago sem trabalhar)?</span>
+              </label>
+            </div>
+            <div id="opt-aviso-cumprido" style="display:none;">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;">
+                <input type="checkbox" id="chk_aviso_cumprido" checked>
+                <span>Cumpriu (trabalhou) o aviso prévio?</span>
+              </label>
+              <div class="hint">Se desmarcar, o valor será descontado.</div>
+            </div>
+            <div id="opt-data-prevista" style="display:none;">
+              <div class="label" style="font-size:13px;">Data Prevista para o FIM do contrato:</div>
+              <input type="date" id="data_prevista_fim" style="width:100%;">
+              <div class="hint">Para cálculo da multa (Art. 479/480)</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="card content-right">
+          <div class="label"><i data-lucide="dollar-sign"></i> Último Salário Base</div>
+          <input id="salario_base" class="currency" placeholder="R$ 0,00" />
+
+          <div class="label" style="margin-top:8px"><i data-lucide="plus-circle"></i> Adicionais Fixos (Total)</div>
+          <input id="adicionais" class="currency" placeholder="Ex: Insalubridade R$ 0,00" />
+
+          <div class="grid-2-cols" style="margin-top:8px; margin-bottom:0;">
+            <div>
+               <div class="label" style="font-size:13px;">Média Horas Extras</div>
+               <input id="media_he" class="currency" placeholder="R$ 0,00" />
+            </div>
+            <div>
+               <div class="label" style="font-size:13px;">Média Comissões</div>
+               <input id="media_comissao" class="currency" placeholder="R$ 0,00" />
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div style="font-weight:600;color:var(--accent);margin-bottom:8px;">
+          <i data-lucide="sliders"></i> Informações Complementares
+        </div>
+        <div class="grid-3-cols">
+            <div>
+                <div class="label" style="font-size:13px;">Dep. IRRF</div>
+                <input type="number" id="dependentes" value="0" min="0" style="width:100%;">
+            </div>
+            <div>
+                <div class="label" style="font-size:13px;">Férias Vencidas (Qtd)</div>
+                <input type="number" id="ferias_vencidas_qtd" value="0" min="0" style="width:100%;">
+            </div>
+            <div>
+                <div class="label" style="font-size:13px;">Saldo FGTS (Fins Rescisórios)</div>
+                <input id="saldo_fgts" class="currency" placeholder="R$ 0,00" />
+            </div>
+        </div>
+        <div class="grid-2-cols" style="margin-top:8px;">
+            <div>
+                <div class="label" style="font-size:13px;">Desconto Pensão Alim.</div>
+                <input id="pensao" class="currency" placeholder="R$ 0,00" />
+            </div>
+            <div>
+                <div class="label" style="font-size:13px;">Adiantamentos / Vales</div>
+                <input id="adiantamento" class="currency" placeholder="R$ 0,00" />
+            </div>
+        </div>
+      </div>
+
+      <div class="action-right">
+        <button id="btnCalcular"><i data-lucide="calculator"></i> Calcular Rescisão</button>
+      </div>
+
+      <div class="errors" id="errors" aria-live="polite"></div>
+
+      <div id="resultArea" style="margin-top:20px;"></div>
+
     </div>
   </main>
 
   <footer>
-    Simulador Rescisão • v1.0 • Desenvolvido por Edinaldo P.S.
+    Simulador Rescisão • v1.0 • Integrado ao Sistema
   </footer>
-  <script>lucide.createIcons();</script>
+
+<script>
+  lucide.createIcons();
+
+  // --- 1. Controle de Interface Dinâmica ---
+  const motivoSelect = document.getElementById('motivo');
+  const divAvisoIndenizado = document.getElementById('opt-aviso-indenizado');
+  const divAvisoCumprido = document.getElementById('opt-aviso-cumprido');
+  const divDataPrevista = document.getElementById('opt-data-prevista');
+  const areaAviso = document.getElementById('area-aviso');
+
+  motivoSelect.addEventListener('change', () => {
+    const m = parseInt(motivoSelect.value);
+    
+    // Reset displays
+    divAvisoIndenizado.style.display = 'none';
+    divAvisoCumprido.style.display = 'none';
+    divDataPrevista.style.display = 'none';
+    areaAviso.style.display = 'block';
+
+    if (m === 1 || m === 4) {
+        // 1: Dispensa s/ Justa Causa, 4: Acordo -> Pode ter aviso indenizado
+        divAvisoIndenizado.style.display = 'block';
+    } else if (m === 2) {
+        // 2: Pedido Demissão -> Pode não cumprir aviso
+        divAvisoCumprido.style.display = 'block';
+    } else if (m === 6 || m === 7) {
+        // 6/7: Quebra contrato -> Precisa data fim
+        divDataPrevista.style.display = 'block';
+    } else {
+        // 3 (Justa Causa) e 5 (Termino Exp) -> não tem opções extras de aviso
+        areaAviso.style.display = 'none';
+    }
+  });
+
+  // --- 2. Formatação de Moeda (Reutilizado do DAS) ---
+  function attachCurrencyBehaviorSmart(inp) {
+    inp.addEventListener('input', () => {
+      let val = inp.value.replace(/[^\d]/g, '');
+      if (val === '') { inp.dataset.value = ''; inp.value = ''; return; }
+      let num = parseFloat(val) / 100;
+      inp.dataset.value = num;
+      inp.value = num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    });
+    // inicializa vazio ou zerado se necessário
+    inp.getNumericValue = () => inp.dataset.value ? parseFloat(inp.dataset.value) : 0.0;
+  }
+
+  const currencyInputs = [
+    'salario_base', 'adicionais', 'media_he', 'media_comissao', 
+    'saldo_fgts', 'pensao', 'adiantamento'
+  ];
+  currencyInputs.forEach(id => {
+    attachCurrencyBehaviorSmart(document.getElementById(id));
+  });
+
+  // --- 3. Envio e Cálculo ---
+  document.getElementById('btnCalcular').addEventListener('click', async () => {
+    const errorsDiv = document.getElementById('errors');
+    const resultArea = document.getElementById('resultArea');
+    errorsDiv.textContent = '';
+    resultArea.innerHTML = '';
+
+    // Coleta de Dados
+    const payload = {
+        motivo: parseInt(motivoSelect.value),
+        data_admissao: document.getElementById('data_admissao').value,
+        data_demissao: document.getElementById('data_demissao').value,
+        data_prevista_fim: document.getElementById('data_prevista_fim').value, // pode ser vazio
+        
+        salario_base: document.getElementById('salario_base').getNumericValue(),
+        adicionais: document.getElementById('adicionais').getNumericValue(),
+        media_he: document.getElementById('media_he').getNumericValue(),
+        media_comissao: document.getElementById('media_comissao').getNumericValue(),
+        
+        ferias_vencidas_qtd: parseInt(document.getElementById('ferias_vencidas_qtd').value) || 0,
+        dependentes: parseInt(document.getElementById('dependentes').value) || 0,
+        saldo_fgts: document.getElementById('saldo_fgts').getNumericValue(),
+        pensao: document.getElementById('pensao').getNumericValue(),
+        adiantamento: document.getElementById('adiantamento').getNumericValue(),
+
+        aviso_indenizado: document.getElementById('chk_aviso_indenizado').checked ? 1 : 0,
+        aviso_cumprido: document.getElementById('chk_aviso_cumprido').checked ? 1 : 0
+    };
+
+    // Validação Simples
+    if (!payload.data_admissao || !payload.data_demissao) {
+        errorsDiv.textContent = 'Preencha as datas de admissão e saída.';
+        return;
+    }
+    if (payload.salario_base <= 0) {
+        errorsDiv.textContent = 'Informe o salário base.';
+        document.getElementById('salario_base').focus();
+        return;
+    }
+    if ((payload.motivo === 6 || payload.motivo === 7) && !payload.data_prevista_fim) {
+        errorsDiv.textContent = 'Para quebra de contrato, informe a Data Prevista do Fim.';
+        return;
+    }
+
+    resultArea.innerHTML = '<div class="card">Calculando...</div>';
+
+    try {
+        const resp = await fetch('/calcular_rescisao', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        const data = await resp.json();
+        if (data.erro) {
+            errorsDiv.textContent = data.erro;
+            resultArea.innerHTML = '';
+            return;
+        }
+
+        renderResults(data);
+
+    } catch (err) {
+        console.error(err);
+        errorsDiv.textContent = 'Erro de comunicação com o servidor.';
+        resultArea.innerHTML = '';
+    }
+  });
+
+  // --- 4. Renderização do Resultado ---
+  function renderResults(data) {
+    const resultArea = document.getElementById('resultArea');
+    
+    // Formatação BRL
+    const fmt = (v) => {
+        // aceitar strings/nums e evitar erro
+        const num = Number(v) || 0;
+        return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
+    // 1. Resumo em Texto
+    let resumoHTML = '<ul style="margin:0; padding-left:20px; color:#555;">';
+    // backend fornece "resumo" (array de linhas)
+    if (Array.isArray(data.resumo)) {
+        data.resumo.forEach(line => resumoHTML += `<li>${line}</li>`);
+    }
+    resumoHTML += '</ul>';
+
+    // 2. Tabela de Verbas (Estilo Holerite)
+    let rowsHTML = '';
+    
+    // Proventos
+    if (data.proventos) {
+        Object.entries(data.proventos).forEach(([desc, val]) => {
+            rowsHTML += `
+                <tr>
+                    <td style="color:#2e7d32; font-weight:500;">${desc}</td>
+                    <td style="text-align:right; color:#2e7d32;">R$ ${fmt(val)}</td>
+                    <td></td>
+                </tr>
+            `;
+        });
+    }
+
+    // Descontos
+    if (data.descontos) {
+        Object.entries(data.descontos).forEach(([desc, val]) => {
+            rowsHTML += `
+                <tr>
+                    <td style="color:#c62828; font-weight:500;">${desc}</td>
+                    <td></td>
+                    <td style="text-align:right; color:#c62828;">R$ ${fmt(val)}</td>
+                </tr>
+            `;
+        });
+    }
+
+    // Totais (usar nomes exatos retornados pelo backend)
+    const totalProventos = data.totais?.total_proventos || 0;
+    const totalDescontos = data.totais?.total_descontos || 0;
+    const totalLiquido = data.totais?.total_liquido || 0;
+
+    const totaisHTML = `
+        <tr style="background:#f4f5fb; font-weight:bold;">
+            <td>TOTAIS</td>
+            <td style="text-align:right;">R$ ${fmt(totalProventos)}</td>
+            <td style="text-align:right;">R$ ${fmt(totalDescontos)}</td>
+        </tr>
+    `;
+
+    resultArea.innerHTML = `
+      <div class="card" style="border-left: 4px solid var(--accent);">
+        <div style="font-weight:600; color:var(--primary); margin-bottom:8px;"><i data-lucide="info"></i> Resumo da Modalidade</div>
+        ${resumoHTML}
+      </div>
+
+      <div class="card" style="margin-top:16px; padding:0; overflow:hidden;">
+        <div style="padding:12px; background:#eee; font-weight:bold; color:#333; border-bottom:1px solid #ddd;">
+           <i data-lucide="file-text"></i> Demonstrativo de Verbas
+        </div>
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+            <thead style="background:#fff; border-bottom:2px solid #eee;">
+                <tr style="text-align:left; color:#666;">
+                    <th style="padding:10px;">Descrição</th>
+                    <th style="padding:10px; text-align:right; width:120px;">Proventos</th>
+                    <th style="padding:10px; text-align:right; width:120px;">Descontos</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${rowsHTML}
+                ${totaisHTML}
+            </tbody>
+        </table>
+        <div style="padding:16px; background:var(--primary); color:#fff; display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:16px; font-weight:bold;">VALOR LÍQUIDO A RECEBER</span>
+            <span style="font-size:20px; font-weight:bold;">R$ ${fmt(totalLiquido)}</span>
+        </div>
+      </div>
+    `;
+    
+    lucide.createIcons();
+  }
+
+</script>
 </body>
 </html>

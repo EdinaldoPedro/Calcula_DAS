@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Holerite - Em Desenvolvimento</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=3">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <header><h1><i data-lucide="file-text"></i> Emissão de Holerite</h1></header>
+
+  <main>
+    <div class="wrap" style="text-align:center; padding:40px 28px;">
+      
+      <div class="card" style="max-width:760px; margin: 0 auto; padding:32px;">
+        <div style="display:flex; align-items:center; gap:12px; justify-content:center; margin-bottom:12px;">
+          <i data-lucide="activity" style="width:36px; height:36px; color:var(--accent);"></i>
+          <div style="font-size:18px; font-weight:700; color:var(--primary);">
+            Gerador de Holerite
+          </div>
+        </div>
+
+        <div style="color:#444; margin:12px 0 20px; font-size:15px;">
+          Estamos finalizando esta funcionalidade. Em breve você poderá gerar o demonstrativo (holerite) com os valores detalhados, exportar em PDF e imprimir.
+        </div>
+
+        <div style="margin-top:8px; margin-bottom:18px;">
+          <div style="background:#fff; border:1px dashed #E4E6F0; padding:18px; border-radius:8px; color:#666;">
+            <strong>O que virá aqui:</strong>
+            <ul style="text-align:left; margin:8px 0 0 18px; padding:0; color:#555;">
+              <li>Montagem automática do holerite com proventos e descontos</li>
+              <li>Opção para detalhar lançamentos (horas extras, adicionais, comissões)</li>
+              <li>Download em PDF com layout formal de holerite</li>
+              <li>Histórico e filtros por período</li>
+            </ul>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:12px; justify-content:center; margin-top:18px;">
+          <button onclick="history.back()" style="background:#f4f5fb; color:var(--primary); border:1px solid #dde2f6; padding:10px 18px; border-radius:8px; cursor:pointer;">
+            <i data-lucide="arrow-left"></i> Voltar
+          </button>
+          <button disabled style="opacity:0.85;">
+            <i data-lucide="clock"></i> Em desenvolvimento
+          </button>
+        </div>
+
+        <div class="hint" style="margin-top:14px;">Enquanto isso, você pode usar o simulador de rescisão para visualizar as verbas e gerar relatórios.</div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    Simulador Rescisão • v1.0 • Integrado ao Sistema
+  </footer>
+
+<script>
+  lucide.createIcons();
+</script>
+</body>
+</html>
