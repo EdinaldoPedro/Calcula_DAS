@@ -21,10 +21,10 @@
         <!-- CARD ESQUERDA -->
         <div class="card">
           <div class="label"><i data-lucide="dollar-sign"></i> Valor da NFS-e</div>
-          <input id="valor_nfse" class="currency" placeholder="R$ —">
+          <input id="valor_nfse" class="currency" placeholder="R$ 0,00">
 
           <div class="label" style="margin-top:6px"><i data-lucide="bar-chart"></i> Faturamento Mensal</div>
-          <input id="faturamento_mensal" class="currency" placeholder="R$ —">
+          <input id="faturamento_mensal" class="currency" placeholder="R$ 0,00">
         </div>
 
         <!-- CARD DIREITA -->
@@ -55,8 +55,22 @@
   </main>
 
   <footer>
-    Lucro Presumido • v1.3 • Desenvolvido por Edinaldo P.S.
+    <div class="footer-left">
+      <span>Lucro Presumido • v1.0 • Dev: <strong>Edinaldo P.S.</strong></span>
+      
+      <a href="https://www.linkedin.com/in/edinaldo-pedro" target="_blank" class="footer-link" title="Ir para LinkedIn">
+        <i data-lucide="linkedin" width="18" height="18" class="linkedin-icon"></i>
+      </a>
+    </div>
+
+    <div class="footer-right">
+      <a href="https://forms.gle/4vTHeUu8pWAcXatq7" target="_blank" class="btn-report">
+        <i data-lucide="message-square-warning" width="16" height="16"></i>
+        Reportar Erro / Feedback
+      </a>
+    </div>
   </footer>
+
 
   <script>
     lucide.createIcons();
@@ -166,6 +180,7 @@
         }
         html += '</div>';
         resultArea.innerHTML = html;
+        showFeedback('Simulador — Lucro Presumido');
 
       } catch (err) {
         errors.textContent = 'Erro ao conectar com o servidor: ' + err.message;

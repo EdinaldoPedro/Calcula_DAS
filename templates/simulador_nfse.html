@@ -19,7 +19,7 @@
           <div class="card">
             <label class="label">Valor Líquido desejado (R$)</label>
             <div class="currency-wrapper">
-              <input id="valor_liquido" type="text" class="currency-input currency" placeholder="R$ —">
+              <input id="valor_liquido" type="text" class="currency-input currency" placeholder="R$ 0,00">
             </div>
             <div id="erro_liquido" class="error-msg" style="display:none;">Preencha este campo</div>
           </div>
@@ -147,7 +147,7 @@ function toggleValorInput(id) {
     if (tipo === "R$") {
         valorWrapper.innerHTML = `
             <div class="currency-wrapper">
-                <input id="val_${id}" type="text" class="currency-input currency" placeholder="R$ —">
+                <input id="val_${id}" type="text" class="currency-input currency" placeholder="R$ 0,00">
             </div>
         `;
         valorWrapper.style.display = "block";
@@ -282,8 +282,23 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<footer>
-  Simulador NFS-e • v1.0 • Desenvolvido por Edinaldo P.S.
-</footer>
+  <footer>
+    <div class="footer-left">
+      <span>Simulador NFS-e • v1.0 • Dev:: <strong>Edinaldo P.S.</strong></span>
+      
+      <a href="https://www.linkedin.com/in/edinaldo-pedro" target="_blank" class="footer-link" title="Ir para LinkedIn">
+        <i data-lucide="linkedin" width="18" height="18" class="linkedin-icon"></i>
+      </a>
+    </div>
+
+    <div class="footer-right">
+      <a href="https://forms.gle/4vTHeUu8pWAcXatq7" target="_blank" class="btn-report">
+        <i data-lucide="message-square-warning" width="16" height="16"></i>
+        Reportar Erro / Feedback
+      </a>
+    </div>
+  </footer>
+
+
 
 <script>lucide.createIcons();</script>
